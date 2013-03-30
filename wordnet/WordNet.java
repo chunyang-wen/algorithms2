@@ -74,7 +74,19 @@ public class WordNet {
 
 	// Read in the hypernyms files. Return the number of edges.
 	private int buildHypernyms(String synsets) {
-		In hf = new In(hypernyms);
+		String[] line;
+		String id;
+		int count = 0;
+		In f = new In(hypernyms);
+		while (!hf.hasNextLine()) {
+			line = f.readLine().split(",");
+			id = Integer.parseInt(line[0]);
+			for (int i = 1; i < line.length; i++) {
+				count++;
+				hypernyms[id].add(Integer.parseInt(line[i]));
+			}
+		}
+		return count;
 	}
 
 	/**
