@@ -22,7 +22,9 @@ import java.lang.IllegalArgumentException;
  * @author William Schwartz
  */
 public class WordNet {
-	private final Bag<String>[] synsets;
+	private final float LOAD_FACTOR = 0.99;
+	private final int APPROX_N_SYNSETS = 82191 / LOAD_FACTOR;
+	private final HashMap<int, HashSet<String>> synsets;
 	private final Bag<Integer>[] hypernyms;
 	private final int E;
 	private final int V;
@@ -44,13 +46,30 @@ public class WordNet {
 	 * rooted DAG.
 	 */
 	public WordNet(String synsets, String hypernyms) {
-		V = buildSynsets(synsets);
+		this.synsets = buildSynsets(synsets);
+		V = synsets.size();
+		this.hypernyms = new Bag<Integer>[V]
 		E = buildHypernyms(hypernyms);
 	}
 
-	// Read in the sysnsets file. Return the number of nodes.
-	private int buildSynsets(String synsets) {
-		In sf = new In(synsets);
+	// Read in the sysnsets file. Return the HashMap of ints to bags of strings
+	// containing the synsets.
+	private HashMap<int, HashSet<String>>  buildSynsets(String synsets) {
+		String[] line;
+		String word;
+		Bag<String> synset;
+		int id;
+		In f = new In(synsets);
+		HashMap<int, Bag<String>> synsets = new HashMap<int, Bag<String>>(APPROX_N_SYNSETS, LOAD_FACTOR);
+		while (!sf.hasNextLine()) {
+			line = f.readLine().split(",");
+			id = Integer.parseInt(line[0]);
+			synset = new HashSet<String>();
+			for (word : line[1].split("\s+"))
+				synset.add(word);
+			synsets.put(id, synset);
+		}
+		return synsets
 	}
 
 	// Read in the hypernyms files. Return the number of edges.
