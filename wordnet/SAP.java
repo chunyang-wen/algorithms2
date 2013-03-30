@@ -34,7 +34,7 @@ public class SAP {
 	 *          calculate common ancestors and lengths of SAPs.
 	 */
 	public SAP(Digraph G) {
-		g = G;
+		g = Digraph(G); // Defensive copy.
 	}
 
 	// length of shortest ancestral path between v and w; -1 if no such path
