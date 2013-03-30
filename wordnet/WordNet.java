@@ -92,7 +92,39 @@ public class WordNet {
 	/**
 	 * Returns all WordNet nouns.
 	 */
-	public Iterable<String> nouns()
+	public Iterable<String> nouns() { return new WordNetIterator(synsets); }
+
+	// String iterator over all the nouns in all the synsets.
+	private class WordNetIterator extends Iterator<String> {
+		private final Iterator<HashSet<String>> values;
+		private Iterator<String> nextSet;
+		private String hasNext = true;
+
+		public WordNetIterator(HashMap<int, HashSet<String>> synsets) {
+			values = synsets.values().iterator();
+			getNextSet();
+		}
+
+		public void remove() { throw new UnsupportedOperationException(); }
+		public boolean hasNext() { return hasNext; }
+
+		private void getNextSet() {
+			try {
+				while (!nextSet.hasNext())
+					nextSet = values.next().iterator();
+			}
+			catch (NoSuchElementException e) { hasNext = false; }
+		}
+
+		// Return the next available noun, then if non available after that, get
+		// the next available synset ready.
+		public String next() {
+			String nextWord = nextSet.next();
+			if (!nextSet.hasNext())
+				getNextSet();
+			return nextWord;
+		}
+	}
 
 	/**
 	 * Is the word a WordNet noun? Uses time logarithmic with the number of
