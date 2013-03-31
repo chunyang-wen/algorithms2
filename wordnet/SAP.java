@@ -26,6 +26,7 @@ import java.lang.IndexOutOfBoundsException;
  */
 public class SAP {
 	private final Digraph g;
+	private Result last;
 
 	/**
 	 * Constructor.
@@ -39,73 +40,151 @@ public class SAP {
 
 	/**
 	 * Run breadth-first search on the graph to find shortest path to each node
-	 * from <code>from</code> and run an operation indicated by
-	 * <code>sum</code>.
+	 * from <code>from</code>.
 	 * <p>
-	 * If <code>sum</code> is <code>false</code>, then the
-	 * <code>distances</code> vector will be filled with the minimum of the
+	 * The <code>distances</code> vector will be filled with the minimum of the
 	 * vector's current value and the distance from <code>from</code> to the
-	 * node indexed in the vector. If <code>sum</code> is <code>true</code> then
-	 * fill the vector with the sum of its current value and the distance
-	 * between <code>from</code> and the node indexed in the vector.
+	 * node indexed in the vector. This way you can run <code>minDistTo</code>
+	 * on the same distances vector with different <code>from</code> nodes.
 	 *
 	 * @param distances node-indexed vector of distances from prior given
-	 *                  <code>from</code> nodes and the indexed node.
+	 *                  <code>from</code> nodes and the indexed node. The first
+	 *                  call should pass this vector in initialized with -1.
 	 * @param from      id of node from which to count distances (0 to self)
-	 * @param sum       false if minimze, true if sum
-	 * @return if <sum>code</code> is false, return [-1, -1] if no ancestral path or
-	 *         a two-tuple of length and first ancestor. Else return the update
-	 *         distances vector.
+	 * @return the distances vector updated with the new lesser distances.
 	 */
-	private int[] fDistTo(int[] distances, int from, boolean sum) {
-		if (distances == null)
-			distances = new int[g.V()];
+	private int[] minDistTo(int[] distances, int from) {
 		assert distances.length == g.V();
 		Queue<Integer> q = new Queue<Integer>();
 		q.enqueue(from);
 		int[] marked = new int[g.V()];
 		int count = 0;
-		for (int source = q.dequeue; !q.isEmpty(); source = q.dequeue;) {
+		for (int source = q.dequeue; !q.isEmpty(); source = q.dequeue) {
+			if (count < distances[source] || distances[source] <= 0 )
+				distances[source] = count;
+			count++;
 			for (int target : g.adj(source)) {
 				if (!marked[target]) {
 					q.enqueue(target);
 					marked[target] = true;
 				}
-				if (sum) {
-					if (count < distances[target])
-						distances[target] = count;
+			}
+		}
+		return distances;
+	}
+
+	private class Query {
+		public final HashSet<Integer> v;
+		public final HashSet<Integer> w;
+		public final int length;
+		public final int ancestor;
+
+		public Query(int v, int w, int len, int anc) {
+			this.v = new HashSet<Integer>(2, 1.0);
+			this.v.add(v);
+			this.w = new HashSet<Integer>(2, 1.0);
+			this.w.add(w);
+			length = len;
+			ancestor = anc;
+		}
+
+		public Query(Iterable<Integer> v, Iterable<Integer> w, int len, int anc) {
+			this.v = new HashSet<Integer>(v);
+			this.w = new HashSet<Integer>(w);
+			length = len;
+			ancestor = ancestor;
+		}
+
+		// Return whether this query matches the (v, w) query
+		public boolean matches(int v, int w) {
+			return this.v.size() == 1 && this.w.size() == 1 && (this.v.contains(v) && this.w.contains(w) || this.w.contains(v) && this.v.contains(w));
+		}
+	}
+
+	private Query solve(int v, int w) {
+		if (v == w) {
+			return new Query(v, w, 0, w);
+		int[] distances = new int[g.V()];
+		for (int i = 0; i < distances.length; i++)
+			distances[i] = -1;
+		distances = minDistTo(distances, v);
+		Queue<Integer> q = new Queue<Integer>();
+		q.enqueue(w);
+		int[] marked = new int[g.V()];
+		int count = 0;
+		for (int ancestor = q.dequeue; !q.isEmpty(); ancestor = q.dequeue) {
+			if (distances[ancestor] > -1)
+				return new Query(v, w, distances[ancestor] + count, ancestor);
+			count++;
+			for (int target : g.adj(ancestor)) {
+				if (!marked[target]) {
+					q.enqueue(target);
+					marked[target] = true;
 				}
-				else {
-					distances[target] += count;
-					// if below is true, this is the first intersection. Return
-					// a two-item array in length, ancestor order.
-					if (distance[target] > count || target == from) {
-						return [distance[target], target];
+			}
+		}
+		return new Query(v, w, -1, -1);
+	}
+
+	private Query solve(Iterable<Integer> v, Iterable<Integer> w) {
+		int[] distances = new int[g.V()];
+		for (int i = 0; i < distances.length; i++)
+			distances[i] = -1;
+		HashSet<Integer> vSet = new HashSet<Integer>(v);
+		HashSet<Integer> wSet = new HashSet<Integer>(w);
+		for (int from : vSet)
+			distances = minDistTo(distances, from);
+		Queue<Integer> q = new Queue<Integer>();
+		int count;
+		for (int source : wSet) {
+			q.enqueue(source);
+			count = 0;
+			for (int ancestor = q.dequeue; !q.isEmpty(); ancestor = q.dequeue) {
+				if (distances[ancestor] > -1)
+					return new Query(vSet, wSet, distances[ancestor] + count, ancestor);
+				count++;
+				for (int target : g.adj(ancestor)) {
+					if (!marked[target]) {
+						q.enqueue(target);
+						marked[target] = true;
 					}
 				}
 			}
-			count++;
 		}
-		if (sum)
-			return distances;
-		else
-			return [-1, -1];
+		return new Query(vSet, wSet, -1, -1);
 	}
 
+
 	// length of shortest ancestral path between v and w; -1 if no such path
-	public int length(int v, int w);
+	public int length(int v, int w) {
+		if (!last.matches(v, w))
+			last = solve(v, w,);
+		return last.length;
+	}
 
 	// a common ancestor of v and w that participates in a shortest ancestral
 	// path; -1 if no such path
-	public int ancestor(int v, int w);
+	public int ancestor(int v, int w) {
+		if (!last.matches(v, w))
+			last = solve(v, w,);
+		return last.ancestor;
+	}
 
 	// length of shortest ancestral path between any vertex in v and any vertex
 	// in w; -1 if no such path. Iterables must contain at least one int.
-	public int length(Iterable<Integer> v, Iterable<Integer> w);
+	public int length(Iterable<Integer> v, Iterable<Integer> w) {
+		if (!last.matches(v, w))
+			last = solve(v, w,);
+		return last.length;
+	}
 
 	// a common ancestor that participates in shortest ancestral path; -1 if no
 	// such path. Iterables must contain at least one int.
-	public int ancestor(Iterable<Integer> v, Iterable<Integer> w);
+	public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
+		if (!last.matches(v, w))
+			last = solve(v, w,);
+		return last.ancestor;
+	}
 
 	/**
 	 * This test client takes the name of a digraph input file as as a
