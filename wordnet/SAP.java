@@ -37,6 +37,50 @@ public class SAP {
 		g = Digraph(G); // Defensive copy.
 	}
 
+	/**
+	 * Run breadth-first search on the graph to find shortest path to each node
+	 * from <code>from</code> and run an operation indicated by
+	 * <code>sum</code>.
+	 * <p>
+	 * If <code>sum</code> is <code>false</code>, then the
+	 * <code>distances</code> vector will be filled with the minimum of the
+	 * vector's current value and the distance from <code>from</code> to the
+	 * node indexed in the vector. If <code>sum</code> is <code>true</code> then
+	 * fill the vector with the sum of its current value and the distance
+	 * between <code>from</code> and the node indexed in the vector.
+	 *
+	 * @param distances node-indexed vector of distances from prior given
+	 *                  <code>from</code> nodes and the indexed node.
+	 * @param from      id of node from which to count distances (0 to self)
+	 * @param sum       false if minimze, true if sum
+	 */
+	private int[] fDistTo(int[] distances, int from, boolean sum) {
+		if (distances == null)
+			distances = new int[g.V()];
+		assert distances.length == g.V();
+		Queue<Integer> q = new Queue<Integer>();
+		q.enqueue(from);
+		int[] marked = new int[g.V()];
+		int count = 0;
+		for (int source = q.dequeue; !q.isEmpty(); source = q.dequeue;) {
+			for (int target : g.adj(source)) {
+				if (!marked[target]) {
+					q.enqueue(target);
+					marked[target] = true;
+				}
+				if (sum) {
+					if (count < distances[target])
+						distances[target] = count;
+				}
+				else {
+					distances[target] += count;
+				}
+			}
+			count++;
+		}
+		return distances;
+	}
+
 	// length of shortest ancestral path between v and w; -1 if no such path
 	public int length(int v, int w);
 
