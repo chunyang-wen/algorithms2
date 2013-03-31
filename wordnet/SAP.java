@@ -53,6 +53,9 @@ public class SAP {
 	 *                  <code>from</code> nodes and the indexed node.
 	 * @param from      id of node from which to count distances (0 to self)
 	 * @param sum       false if minimze, true if sum
+	 * @return if <sum>code</code> is false, return [-1, -1] if no ancestral path or
+	 *         a two-tuple of length and first ancestor. Else return the update
+	 *         distances vector.
 	 */
 	private int[] fDistTo(int[] distances, int from, boolean sum) {
 		if (distances == null)
@@ -74,11 +77,19 @@ public class SAP {
 				}
 				else {
 					distances[target] += count;
+					// if below is true, this is the first intersection. Return
+					// a two-item array in length, ancestor order.
+					if (distance[target] > count || target == from) {
+						return [distance[target], target];
+					}
 				}
 			}
 			count++;
 		}
-		return distances;
+		if (sum)
+			return distances;
+		else
+			return [-1, -1];
 	}
 
 	// length of shortest ancestral path between v and w; -1 if no such path
