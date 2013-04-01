@@ -9,6 +9,7 @@
  ************************************************************************/
 
 import java.lang.IndexOutOfBoundsException;
+import java.util.HashSet;
 
 /**
  * Instances of <code>SAP</code> calculate shortest ancestral paths between two
@@ -26,7 +27,7 @@ import java.lang.IndexOutOfBoundsException;
  */
 public class SAP {
 	private final Digraph g;
-	private Result last;
+	private Query last;
 
 	/**
 	 * Constructor.
@@ -57,9 +58,9 @@ public class SAP {
 		assert distances.length == g.V();
 		Queue<Integer> q = new Queue<Integer>();
 		q.enqueue(from);
-		int[] marked = new int[g.V()];
+		boolean[] marked = new boolean[g.V()];
 		int count = 0;
-		for (int source = q.dequeue; !q.isEmpty(); source = q.dequeue) {
+		for (int source = q.dequeue(); !q.isEmpty(); source = q.dequeue()) {
 			if (count < distances[source] || distances[source] <= 0 )
 				distances[source] = count;
 			count++;
@@ -80,17 +81,21 @@ public class SAP {
 		public final int ancestor;
 
 		public Query(int v, int w, int len, int anc) {
-			this.v = new HashSet<Integer>(2, 1.0);
+			this.v = new HashSet<Integer>(2, 1.0f);
 			this.v.add(v);
-			this.w = new HashSet<Integer>(2, 1.0);
+			this.w = new HashSet<Integer>(2, 1.0f);
 			this.w.add(w);
 			length = len;
 			ancestor = anc;
 		}
 
 		public Query(Iterable<Integer> v, Iterable<Integer> w, int len, int anc) {
-			this.v = new HashSet<Integer>(v);
-			this.w = new HashSet<Integer>(w);
+			this.v = new HashSet<Integer>();
+			for (int i : v)
+				this.v.add(i);
+			this.w = new HashSet<Integer>();
+			for (int i : w)
+				this.w.add(i);
 			length = len;
 			ancestor = ancestor;
 		}
@@ -101,8 +106,12 @@ public class SAP {
 		}
 
 		public boolean matches(Iterable<Integer> v, Iterable<Integer> w) {
-			HashSet<Integer> vSet = new HashSet<Integer>(v);
-			HashSet<Integer> wSet = new HashSet<Integer>(w);
+			HashSet<Integer> vSet = new HashSet<Integer>();
+			for (int i: v)
+				vSet.add(i);
+			HashSet<Integer> wSet = new HashSet<Integer>();
+			for (int i: w)
+				wSet.add(i);
 			return this.v.equals(vSet) && this.w.equals(wSet) || this.v.equals(wSet) && this.v.equals(vSet);
 		}
 	}
@@ -116,9 +125,9 @@ public class SAP {
 		distances = minDistTo(distances, v);
 		Queue<Integer> q = new Queue<Integer>();
 		q.enqueue(w);
-		int[] marked = new int[g.V()];
+		boolean[] marked = new boolean[g.V()];
 		int count = 0;
-		for (int ancestor = q.dequeue; !q.isEmpty(); ancestor = q.dequeue) {
+		for (int ancestor = q.dequeue(); !q.isEmpty(); ancestor = q.dequeue()) {
 			if (distances[ancestor] > -1)
 				return new Query(v, w, distances[ancestor] + count, ancestor);
 			count++;
@@ -137,15 +146,20 @@ public class SAP {
 		int[] wdist = new int[g.V()];
 		for (int i = 0; i < g.V(); i++)
 			vdist[i] = wdist[i] = -1;
-		HashSet<Integer> vSet = new HashSet<Integer>(v);
-		HashSet<Integer> wSet = new HashSet<Integer>(w);
-		for (int from : vSet)
+		HashSet<Integer> vSet = new HashSet<Integer>();
+		for (int from : v) {
+			vSet.add(from);
 			vdist = minDistTo(vdist, from);
-		for (int from : wSet)
+		}
+		HashSet<Integer> wSet = new HashSet<Integer>();
+		for (int from : wSet) {
+			wSet.add(from);
 			wdist = minDistTo(wdist, from);
-		int minAncestor = minDist = -1;
+		}
+		int minAncestor = -1;
+		int minDist = -1;
 		for (int i = 0; i < g.V(); i++) {
-			if (vdist[i] > -1 && wdist[i] > -1 && minDist == -1 || min > vdist[i] + wdist[i]) {
+			if (vdist[i] > -1 && wdist[i] > -1 && minDist == -1 || minDist > vdist[i] + wdist[i]) {
 					minDist = vdist[i] + wdist[i];
 					minAncestor = i;
 			}
