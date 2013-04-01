@@ -27,7 +27,8 @@ import java.util.HashSet;
  */
 public class SAP {
 	private final Digraph g;
-	private Query last;
+	// Last-answer cache. Will be modified, but only allocate once.
+	private final Query last;
 
 	/**
 	 * Constructor.
@@ -37,6 +38,7 @@ public class SAP {
 	 */
 	public SAP(Digraph G) {
 		g = Digraph(G); // Defensive copy.
+		last = new Query(-1, -1, -1, -1);
 	}
 
 	/**
@@ -81,19 +83,31 @@ public class SAP {
 		public final int ancestor;
 
 		public Query(int v, int w, int len, int anc) {
-			this.v = new HashSet<Integer>(2, 1.0f);
+			this.v = new HashSet<Integer>();
+			this.w = new HashSet<Integer>();
+			update(v, w, len, anc);
+		}
+
+		public Query(Iterable<Integer> v, Iterable<Integer> w, int len, int anc) {
+			this.v = new HashSet<Integer>();
+			this.w = new HashSet<Integer>();
+			update(v, w, len, anc);
+		}
+
+		public void update(int v, int w, int len, int anc) {
+			this.v.clear()
+			this.w.clear();
 			this.v.add(v);
-			this.w = new HashSet<Integer>(2, 1.0f);
 			this.w.add(w);
 			length = len;
 			ancestor = anc;
 		}
 
-		public Query(Iterable<Integer> v, Iterable<Integer> w, int len, int anc) {
-			this.v = new HashSet<Integer>();
+		public void update(Iterable<Integer> v, Iterable<Integer> w, int len, int anc) {
+			this.v.clear()
 			for (int i : v)
 				this.v.add(i);
-			this.w = new HashSet<Integer>();
+			this.w.clear();
 			for (int i : w)
 				this.w.add(i);
 			length = len;
@@ -118,7 +132,7 @@ public class SAP {
 
 	private Query solve(int v, int w) {
 		if (v == w)
-			return new Query(v, w, 0, w);
+			return last.update(v, w, 0, w);
 		int[] distances = new int[g.V()];
 		for (int i = 0; i < distances.length; i++)
 			distances[i] = -1;
@@ -128,8 +142,10 @@ public class SAP {
 		boolean[] marked = new boolean[g.V()];
 		int count = 0;
 		for (int ancestor = q.dequeue(); !q.isEmpty(); ancestor = q.dequeue()) {
-			if (distances[ancestor] > -1)
-				return new Query(v, w, distances[ancestor] + count, ancestor);
+			if (distances[ancestor] > -1) {
+				last.update(v, w, distances[ancestor] + count, ancestor);
+				return;
+			}
 			count++;
 			for (int target : g.adj(ancestor)) {
 				if (!marked[target]) {
@@ -138,7 +154,7 @@ public class SAP {
 				}
 			}
 		}
-		return new Query(v, w, -1, -1);
+		last.update(v, w, -1, -1);
 	}
 
 	private Query solve(Iterable<Integer> v, Iterable<Integer> w) {
@@ -164,38 +180,38 @@ public class SAP {
 					minAncestor = i;
 			}
 		}
-		return new Query(vSet, wSet, minDist, minAncestor);
+		return last.update(vSet, wSet, minDist, minAncestor);
 	}
 
 
 	// length of shortest ancestral path between v and w; -1 if no such path
 	public int length(int v, int w) {
-		if (last == null || !last.matches(v, w))
-			last = solve(v, w);
+		if (!last.matches(v, w))
+			solve(v, w);
 		return last.length;
 	}
 
 	// a common ancestor of v and w that participates in a shortest ancestral
 	// path; -1 if no such path
 	public int ancestor(int v, int w) {
-		if (last == null || !last.matches(v, w))
-			last = solve(v, w);
+		if (!last.matches(v, w))
+			solve(v, w);
 		return last.ancestor;
 	}
 
 	// length of shortest ancestral path between any vertex in v and any vertex
 	// in w; -1 if no such path. Iterables must contain at least one int.
 	public int length(Iterable<Integer> v, Iterable<Integer> w) {
-		if (last == null || !last.matches(v, w))
-			last = solve(v, w);
+		if (!last.matches(v, w))
+			solve(v, w);
 		return last.length;
 	}
 
 	// a common ancestor that participates in shortest ancestral path; -1 if no
 	// such path. Iterables must contain at least one int.
 	public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
-		if (last == null || !last.matches(v, w))
-			last = solve(v, w);
+		if (!last.matches(v, w))
+			solve(v, w);
 		return last.ancestor;
 	}
 
