@@ -102,7 +102,7 @@ public class SAP {
 	}
 
 	private Query solve(int v, int w) {
-		if (v == w) {
+		if (v == w)
 			return new Query(v, w, 0, w);
 		int[] distances = new int[g.V()];
 		for (int i = 0; i < distances.length; i++)
@@ -158,7 +158,7 @@ public class SAP {
 	// length of shortest ancestral path between v and w; -1 if no such path
 	public int length(int v, int w) {
 		if (!last.matches(v, w))
-			last = solve(v, w,);
+			last = solve(v, w);
 		return last.length;
 	}
 
@@ -166,7 +166,7 @@ public class SAP {
 	// path; -1 if no such path
 	public int ancestor(int v, int w) {
 		if (!last.matches(v, w))
-			last = solve(v, w,);
+			last = solve(v, w);
 		return last.ancestor;
 	}
 
@@ -174,7 +174,7 @@ public class SAP {
 	// in w; -1 if no such path. Iterables must contain at least one int.
 	public int length(Iterable<Integer> v, Iterable<Integer> w) {
 		if (!last.matches(v, w))
-			last = solve(v, w,);
+			last = solve(v, w);
 		return last.length;
 	}
 
@@ -182,7 +182,7 @@ public class SAP {
 	// such path. Iterables must contain at least one int.
 	public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
 		if (!last.matches(v, w))
-			last = solve(v, w,);
+			last = solve(v, w);
 		return last.ancestor;
 	}
 
