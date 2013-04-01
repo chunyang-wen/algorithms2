@@ -157,7 +157,7 @@ public class SAP {
 
 	// length of shortest ancestral path between v and w; -1 if no such path
 	public int length(int v, int w) {
-		if (!last.matches(v, w))
+		if (last == null || !last.matches(v, w))
 			last = solve(v, w);
 		return last.length;
 	}
@@ -165,7 +165,7 @@ public class SAP {
 	// a common ancestor of v and w that participates in a shortest ancestral
 	// path; -1 if no such path
 	public int ancestor(int v, int w) {
-		if (!last.matches(v, w))
+		if (last == null || !last.matches(v, w))
 			last = solve(v, w);
 		return last.ancestor;
 	}
@@ -173,7 +173,7 @@ public class SAP {
 	// length of shortest ancestral path between any vertex in v and any vertex
 	// in w; -1 if no such path. Iterables must contain at least one int.
 	public int length(Iterable<Integer> v, Iterable<Integer> w) {
-		if (!last.matches(v, w))
+		if (last == null || !last.matches(v, w))
 			last = solve(v, w);
 		return last.length;
 	}
@@ -181,7 +181,7 @@ public class SAP {
 	// a common ancestor that participates in shortest ancestral path; -1 if no
 	// such path. Iterables must contain at least one int.
 	public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
-		if (!last.matches(v, w))
+		if (last == null || !last.matches(v, w))
 			last = solve(v, w);
 		return last.ancestor;
 	}
