@@ -152,7 +152,7 @@ public class SAP {
 			vdist = minDistTo(vdist, from);
 		}
 		HashSet<Integer> wSet = new HashSet<Integer>();
-		for (int from : wSet) {
+		for (int from : w) {
 			wSet.add(from);
 			wdist = minDistTo(wdist, from);
 		}
