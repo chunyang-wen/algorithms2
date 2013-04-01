@@ -99,6 +99,12 @@ public class SAP {
 		public boolean matches(int v, int w) {
 			return this.v.size() == 1 && this.w.size() == 1 && (this.v.contains(v) && this.w.contains(w) || this.w.contains(v) && this.v.contains(w));
 		}
+
+		public boolean matches(Iterable<Integer> v, Iterable<Integer> w) {
+			HashSet<Integer> vSet = new HashSet<Integer>(v);
+			HashSet<Integer> wSet = new HashSet<Integer>(w);
+			return this.v.equals(vSet) && this.w.equals(wSet) || this.v.equals(wSet) && this.v.equals(vSet);
+		}
 	}
 
 	private Query solve(int v, int w) {
