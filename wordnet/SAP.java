@@ -133,31 +133,24 @@ public class SAP {
 	}
 
 	private Query solve(Iterable<Integer> v, Iterable<Integer> w) {
-		int[] distances = new int[g.V()];
-		for (int i = 0; i < distances.length; i++)
-			distances[i] = -1;
+		int[] vdist = new int[g.V()];
+		int[] wdist = new int[g.V()];
+		for (int i = 0; i < g.V(); i++)
+			vdist[i] = wdist[i] = -1;
 		HashSet<Integer> vSet = new HashSet<Integer>(v);
 		HashSet<Integer> wSet = new HashSet<Integer>(w);
 		for (int from : vSet)
-			distances = minDistTo(distances, from);
-		Queue<Integer> q = new Queue<Integer>();
-		int count;
-		for (int source : wSet) {
-			q.enqueue(source);
-			count = 0;
-			for (int ancestor = q.dequeue; !q.isEmpty(); ancestor = q.dequeue) {
-				if (distances[ancestor] > -1)
-					return new Query(vSet, wSet, distances[ancestor] + count, ancestor);
-				count++;
-				for (int target : g.adj(ancestor)) {
-					if (!marked[target]) {
-						q.enqueue(target);
-						marked[target] = true;
-					}
-				}
+			vdist = minDistTo(vdist, from);
+		for (int from : wSet)
+			wdist = minDistTo(wdist, from);
+		int minAncestor = minDist = -1;
+		for (int i = 0; i < g.V(); i++) {
+			if (vdist[i] > -1 && wdist[i] > -1 && minDist == -1 || min > vdist[i] + wdist[i]) {
+					minDist = vdist[i] + wdist[i];
+					minAncestor = i;
 			}
 		}
-		return new Query(vSet, wSet, -1, -1);
+		return new Query(vSet, wSet, minDist, minAncestor);
 	}
 
 
