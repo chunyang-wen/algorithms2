@@ -22,6 +22,9 @@ import java.lang.IllegalArgumentException;
  * @author William Schwartz
  */
 public class WordNet {
+	private final SAP paths;
+	private final HashMap<Integer, String> id2synset;
+	private final HashMap<String, Bag<Integer>> noun2ids;
 
 	/** Create a WordNet from a synsets and a hypernyms CSV file. Uses time
 	 * linearithmic with the input size.
@@ -39,18 +42,66 @@ public class WordNet {
 	 * @throws java.lang.IllegalArgumentException if files do not represent a
 	 * rooted DAG.
 	 */
-	public WordNet(String synsets, String hypernyms)
+	public WordNet(String synsets, String hypernyms) {
+		// Read synsets files. Prepare mappings among synsets, ids, and words.
+		id2synsets = new HashMap<Integer, String>();
+		noun2ids = new HashMap<String, Bag<Integer>>();
+		In file = new In(synsets);
+		String[] line;
+		int id;
+		Bag<Integer> bag;
+		while (!file.isEmpty()) {
+			line = file.readLine().split(',');
+			id = Integer.parseInt(line[0]);
+			id2synset.put(id, line[1]);
+			for (String noun : line[1].split(' ')) {
+				bag = noun2ids.get(noun);
+				if (bag == null) {
+					bag = new Bag<Integer>();
+					bag.add(id);
+					noun2ids.put(noun, bag);
+				}
+				else {
+					bag.add(id);
+				}
+			}
+		}
+		// Read hypernyms digraph. Test for cycles. Prepare
+		// shortest-ancestral-path data type.
+		Digraph g = new Digraph(id2synset.size());
+		file = new In(hypernyms);
+		while (!file.isEmpty()) {
+			line = file.readLine().split(',');
+			id = Integer.parseInt(line[0]);
+			for (int i = 1; i < line.length; i++)
+				g.addEdge(id, Integer.parseInt(line[i]));
+		}
+		DirectedCycle dc = new DirectedCycle(g);
+		if (dc.hasCycle()) {
+			String msg = hypernyms + " does not represent a DAG";
+			throw new IllegalArgumentException(msg);
+		}
+		this.paths = SAP(g);
+	}
 
 	/**
 	 * Returns all WordNet nouns.
 	 */
-	public Iterable<String> nouns()
+	public Iterable<String> nouns() { return noun2ids.keySet().iterator(); }
 
 	/**
-	 * Is the word a WordNet noun? Uses time logarithmic with the number of
-	 * nouns in the WordNet.
+	 * Is the word a WordNet noun? Uses constant time.
 	 */
-	public boolean isNoun(String word)
+	public boolean isNoun(String word) { return noun2ids.containsKey(word); }
+
+	// Convenience private method to throw IllegalArgumentException for
+	// distance() and sap().
+	private void bothNouns(String nounA, String nounB) {
+		if (!isNoun(nounA) || !isNoun(nounB)) {
+			String msg = "One of these nouns is not in the WordNet: " + nounA + " " + nounB;
+			throw new IllegalArgumentException(msg);
+		}
+	}
 
 	/**
 	 * Distance between nounA and nounB. Runs in time linear with the size of
@@ -58,7 +109,10 @@ public class WordNet {
 	 * @throws java.lang.IllegalArgumentException if either noun parameter is
 	 * not in the WordNet.
 	 */
-	public int distance(String nounA, String nounB)
+	public int distance(String nounA, String nounB) {
+		areBothNouns(nounA, nounB);
+		return paths.length(noun2ids.get(nounA), noun2ids.get(nounB));
+	}
 
 	/**
 	 * A synset (second field of synsets.txt) that is the common ancestor of
@@ -67,8 +121,12 @@ public class WordNet {
 	 * @throws java.lang.IllegalArgumentException if either noun parameter is
 	 * not in the WordNet.
 	 */
-	public String sap(String nounA, String nounB)
+	public String sap(String nounA, String nounB) {
+		areBothNouns(nounA, nounB);
+		return id2synset.get(paths.ancestor(nouns2ids.get(nounA),
+											nouns2ids.get(nounB)));
+	}
 
 	// for unit testing of this class
-	public static void main(String[] args)
+	public static void main(String[] args);
 }
