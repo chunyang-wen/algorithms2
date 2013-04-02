@@ -18,6 +18,7 @@
  * @author William Schwartz
  */
 public class Outcast {
+	private final WordNet wordnet;
 
 	/**
 	 * Constructor takes a WordNet object.
@@ -25,7 +26,7 @@ public class Outcast {
 	 * @param wordnet hypernym-relationship WordNet with semantic information
 	 *                about input word.
 	 */
-	public Outcast(WordNet wordnet) { wn = wordnet; }
+	public Outcast(WordNet wordnet) { this.wordnet = wordnet; }
 
 	/**
 	 * Return the word from the input array that is least like the others.
@@ -42,7 +43,7 @@ public class Outcast {
 		int[][] distances = new int[nouns.length][nouns.length];
 		for (int i = 0; i < nouns.length; i++)
 			for (int j = i + 1; j < nouns.length; j++)
-				distances[i][j] = wn.distance(nouns[i], nouns[j]);
+				distances[i][j] = wordnet.distance(nouns[i], nouns[j]);
 		return nouns[argMaxUpperTriangular(distances)];
 	}
 
