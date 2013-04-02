@@ -22,12 +22,6 @@ import java.lang.IllegalArgumentException;
  * @author William Schwartz
  */
 public class WordNet {
-	private final float LOAD_FACTOR = 0.99;
-	private final int APPROX_N_SYNSETS = 82191 / LOAD_FACTOR;
-	private final HashMap<int, HashSet<String>> synsets;
-	private final Bag<Integer>[] hypernyms;
-	private final int E;
-	private final int V;
 
 	/** Create a WordNet from a synsets and a hypernyms CSV file. Uses time
 	 * linearithmic with the input size.
