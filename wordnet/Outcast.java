@@ -27,10 +27,51 @@ public class Outcast {
 	 */
 	public Outcast(WordNet wordnet) { wn = wordnet; }
 
-	// given an array of WordNet nouns, return an outcast.
-	// Assume the argument array contains at least two valid WordNet nouns, and
-	// no non-valid nouns.
-	public String outcast(String[] nouns);
+	/**
+	 * Return the word from the input array that is least like the others.
+	 * <p>
+	 * Given an array of WordNet nouns, return an outcast. Assume the argument
+	 * array contains at least two valid WordNet nouns, and no non-valid nouns.
+	 *
+	 * @param nouns An array of strings containing at least two nouns, all of
+	 *              which are in the WordNet that was passed to the constructor.
+	 * @return The string in the input array whose word is least like the
+	 * others.
+	 */
+	public String outcast(String[] nouns) {
+		int[][] distances = new int[nouns.length][nouns.length];
+		for (int i = 0; i < nouns.length; i++)
+			for (int j = i + 1; j < nouns.length; j++)
+				distances[i][j] = wn.distance(nouns[i], nouns[j]);
+		return nouns[argMaxUpperTriangular(distances)];
+	}
+
+	/**
+	 * Reflect a upper triangular matrix across its diagonal and return the row
+	 * index whose sum is greatest, without modifying the input matrix.
+	 * <p>
+	 * The non-mutating reflection is accomplished by adding down column
+	 * <em>i</em> from 0 to <em>i</em> - 1 and adding across row <em>i</em> from
+	 * <em>i</em> to <code>a[i].length</code>.
+	 *
+	 * @param a An array of arrays of integers in row-major form. The arrays
+	 *          should but do not have to be equal lengths.
+	 * @return The row index whose sum after reflection is greatest.
+	 */
+	public int[] argMaxUpperTriangular(int[][] a) {
+		int sum, max, argmax;
+		max = 0;
+		for (int i = 0; i < a.length; i++) {
+			sum = 0;
+			for (int j = 0; j < a[i].length; j++)
+				sum += j < i ?  a[j][i] : a[i][j];
+			if (i == 0 || sum > max) {
+				min = sum;
+				argmax = i;
+			}
+		}
+		return argmax;
+	}
 
 	/**
 	 * The following test client takes from the command line the name of a
