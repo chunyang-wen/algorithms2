@@ -37,7 +37,7 @@ public class SAP {
 	 *          calculate common ancestors and lengths of SAPs.
 	 */
 	public SAP(Digraph G) {
-		g = Digraph(G); // Defensive copy.
+		g = new Digraph(G); // Defensive copy.
 		last = new Query(-1, -1, -1, -1);
 	}
 
@@ -79,8 +79,8 @@ public class SAP {
 	private class Query {
 		public final HashSet<Integer> v;
 		public final HashSet<Integer> w;
-		public final int length;
-		public final int ancestor;
+		public int length;
+		public int ancestor;
 
 		public Query(int v, int w, int len, int anc) {
 			this.v = new HashSet<Integer>();
@@ -95,7 +95,7 @@ public class SAP {
 		}
 
 		public void update(int v, int w, int len, int anc) {
-			this.v.clear()
+			this.v.clear();
 			this.w.clear();
 			this.v.add(v);
 			this.w.add(w);
@@ -104,7 +104,7 @@ public class SAP {
 		}
 
 		public void update(Iterable<Integer> v, Iterable<Integer> w, int len, int anc) {
-			this.v.clear()
+			this.v.clear();
 			for (int i : v)
 				this.v.add(i);
 			this.w.clear();
@@ -130,9 +130,11 @@ public class SAP {
 		}
 	}
 
-	private Query solve(int v, int w) {
-		if (v == w)
-			return last.update(v, w, 0, w);
+	private void solve(int v, int w) {
+		if (v == w) {
+			last.update(v, w, 0, w);
+			return;
+		}
 		int[] distances = new int[g.V()];
 		for (int i = 0; i < distances.length; i++)
 			distances[i] = -1;
@@ -157,7 +159,7 @@ public class SAP {
 		last.update(v, w, -1, -1);
 	}
 
-	private Query solve(Iterable<Integer> v, Iterable<Integer> w) {
+	private void solve(Iterable<Integer> v, Iterable<Integer> w) {
 		int[] vdist = new int[g.V()];
 		int[] wdist = new int[g.V()];
 		for (int i = 0; i < g.V(); i++)
@@ -180,7 +182,7 @@ public class SAP {
 					minAncestor = i;
 			}
 		}
-		return last.update(vSet, wSet, minDist, minAncestor);
+		last.update(vSet, wSet, minDist, minAncestor);
 	}
 
 

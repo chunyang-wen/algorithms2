@@ -12,6 +12,7 @@
  ************************************************************************/
 
 import java.lang.IllegalArgumentException;
+import java.util.HashMap;
 
 /**
  * The <code>WordNet</code> class immutably represnts a WordNet graph of
@@ -44,17 +45,17 @@ public class WordNet {
 	 */
 	public WordNet(String synsets, String hypernyms) {
 		// Read synsets files. Prepare mappings among synsets, ids, and words.
-		id2synsets = new HashMap<Integer, String>();
+		id2synset = new HashMap<Integer, String>();
 		noun2ids = new HashMap<String, Bag<Integer>>();
 		In file = new In(synsets);
 		String[] line;
 		int id;
 		Bag<Integer> bag;
 		while (!file.isEmpty()) {
-			line = file.readLine().split(',');
+			line = file.readLine().split(",");
 			id = Integer.parseInt(line[0]);
 			id2synset.put(id, line[1]);
-			for (String noun : line[1].split(' ')) {
+			for (String noun : line[1].split(" ")) {
 				bag = noun2ids.get(noun);
 				if (bag == null) {
 					bag = new Bag<Integer>();
@@ -71,7 +72,7 @@ public class WordNet {
 		Digraph g = new Digraph(id2synset.size());
 		file = new In(hypernyms);
 		while (!file.isEmpty()) {
-			line = file.readLine().split(',');
+			line = file.readLine().split(",");
 			id = Integer.parseInt(line[0]);
 			for (int i = 1; i < line.length; i++)
 				g.addEdge(id, Integer.parseInt(line[i]));
@@ -81,13 +82,13 @@ public class WordNet {
 			String msg = hypernyms + " does not represent a DAG";
 			throw new IllegalArgumentException(msg);
 		}
-		this.paths = SAP(g);
+		this.paths = new SAP(g);
 	}
 
 	/**
 	 * Returns all WordNet nouns.
 	 */
-	public Iterable<String> nouns() { return noun2ids.keySet().iterator(); }
+	public Iterable<String> nouns() { return noun2ids.keySet(); }
 
 	/**
 	 * Is the word a WordNet noun? Uses constant time.
@@ -96,7 +97,7 @@ public class WordNet {
 
 	// Convenience private method to throw IllegalArgumentException for
 	// distance() and sap().
-	private void bothNouns(String nounA, String nounB) {
+	private void areBothNouns(String nounA, String nounB) {
 		if (!isNoun(nounA) || !isNoun(nounB)) {
 			String msg = "One of these nouns is not in the WordNet: " + nounA + " " + nounB;
 			throw new IllegalArgumentException(msg);
@@ -123,8 +124,8 @@ public class WordNet {
 	 */
 	public String sap(String nounA, String nounB) {
 		areBothNouns(nounA, nounB);
-		return id2synset.get(paths.ancestor(nouns2ids.get(nounA),
-											nouns2ids.get(nounB)));
+		return id2synset.get(paths.ancestor(noun2ids.get(nounA),
+											noun2ids.get(nounB)));
 	}
 
 	// for unit testing of this class
