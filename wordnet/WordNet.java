@@ -1,7 +1,7 @@
 /*************************************************************************
  * Author: William Schwartz
  * Compliation: javac WordNet.java
- * Execution: java WordNet filename.txt
+ * Execution: java WordNet synsets.csv hypernyms.csv
  * Dependencies: In.java StdOut.java
  *
  * Immutable datatype that models the WordNet of the is-a relationship. Nodes
@@ -128,6 +128,25 @@ public class WordNet {
 											noun2ids.get(nounB)));
 	}
 
-	// for unit testing of this class
-	public static void main(String[] args);
+	// for unit testing of this class. Usage:
+	// java WordNet synsets.csv hypernyms.csv
+	public static void main(String[] args) {
+		WordNet wn = new WordNet(args[0], args[1]);
+		while (!StdIn.isEmpty()) {
+			StdOut.printf("Name two nouns to query their relatedness: ");
+			String v = StdIn.readString();
+			String w = StdIn.readString();
+			if (!wn.isNoun(v)) {
+				StdOut.printf(v + " not in the word net");
+				continue;
+			}
+			if (!wn.isNoun(w)) {
+				StdOut.printf(w + " not in the word net");
+				continue;
+			}
+			int distance = wn.distance(v, w);
+			String ancestor = wn.sap(v, w);
+			StdOut.printf("distance = %d, ancestor = %d\n", distance, ancestor);
+		}
+	}
 }
