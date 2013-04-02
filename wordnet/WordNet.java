@@ -39,20 +39,7 @@ public class WordNet {
 	 * @throws java.lang.IllegalArgumentException if files do not represent a
 	 * rooted DAG.
 	 */
-	public WordNet(String synsets, String hypernyms) {
-		V = buildSynsets(synsets);
-		E = buildHypernyms(hypernyms);
-	}
-
-	// Read in the sysnsets file. Return the number of nodes.
-	private int buildSynsets(String synsets) {
-		In sf = new In(synsets);
-	}
-
-	// Read in the hypernyms files. Return the number of edges.
-	private int buildHypernyms(String synsets) {
-		In hf = new In(hypernyms);
-	}
+	public WordNet(String synsets, String hypernyms)
 
 	/**
 	 * Returns all WordNet nouns.
