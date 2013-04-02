@@ -29,6 +29,10 @@ public class SAP {
 	private final Digraph g;
 	// Last-answer cache. Will be modified, but only allocate once.
 	private final Query last;
+	private final int[] vdist;
+	private final int[] wdist;
+	private final HashSet<Integer> vChanges;
+	private final HashSet<Integer> wChanges;
 
 	/**
 	 * Constructor.
@@ -39,11 +43,17 @@ public class SAP {
 	public SAP(Digraph G) {
 		g = new Digraph(G); // Defensive copy.
 		last = new Query(-1, -1, -1, -1);
+		vdist = new int[g.V()];
+		wdist = new int[g.V()];
+		for (int i = 0; i < g.V(); i++)
+			vdist[i] = wdist[i] = -1;
+		vChanges = new HashSet<Integer>();
+		wChanges = new HashSet<Integer>();
 	}
 
 	/**
 	 * Run breadth-first search on the graph to find shortest path to each node
-	 * from <code>from</code>.
+	 * from <code>from</code>. Update the vector of distances in place.
 	 * <p>
 	 * The <code>distances</code> vector will be filled with the minimum of the
 	 * vector's current value and the distance from <code>from</code> to the
@@ -54,17 +64,19 @@ public class SAP {
 	 *                  <code>from</code> nodes and the indexed node. The first
 	 *                  call should pass this vector in initialized with -1.
 	 * @param from      id of node from which to count distances (0 to self)
-	 * @return the distances vector updated with the new lesser distances.
+	 * @param changes   <code>HashSet</code> of changed indicies (for a cache)
 	 */
-	private int[] minDistTo(int[] distances, int from) {
+	private void minDistTo(int[] distances, int from, HashSet<Integer> changes) {
 		assert distances.length == g.V();
 		Queue<Integer> q = new Queue<Integer>();
 		q.enqueue(from);
 		boolean[] marked = new boolean[g.V()];
 		int count = 0;
 		for (int source = q.dequeue(); !q.isEmpty(); source = q.dequeue()) {
-			if (count < distances[source] || distances[source] <= 0 )
+			if (count < distances[source] || distances[source] <= 0 ) {
 				distances[source] = count;
+				changes.add(source);
+			}
 			count++;
 			for (int target : g.adj(source)) {
 				if (!marked[target]) {
@@ -73,7 +85,6 @@ public class SAP {
 				}
 			}
 		}
-		return distances;
 	}
 
 	private class Query {
@@ -135,10 +146,11 @@ public class SAP {
 			last.update(v, w, 0, w);
 			return;
 		}
-		int[] distances = new int[g.V()];
-		for (int i = 0; i < distances.length; i++)
+		int[] distances = vdist;
+		for (int i : vChanges)
 			distances[i] = -1;
-		distances = minDistTo(distances, v);
+		vChanges.clear();
+		minDistTo(distances, v, vChanges);
 		Queue<Integer> q = new Queue<Integer>();
 		q.enqueue(w);
 		boolean[] marked = new boolean[g.V()];
@@ -160,19 +172,21 @@ public class SAP {
 	}
 
 	private void solve(Iterable<Integer> v, Iterable<Integer> w) {
-		int[] vdist = new int[g.V()];
-		int[] wdist = new int[g.V()];
-		for (int i = 0; i < g.V(); i++)
-			vdist[i] = wdist[i] = -1;
+		for (int i : vChanges)
+			vdist[i] = -1;
+		vChanges.clear();
+		for (int i : wChanges)
+			wdist[i] = -1;
+		wChanges.clear();
 		HashSet<Integer> vSet = new HashSet<Integer>();
 		for (int from : v) {
 			vSet.add(from);
-			vdist = minDistTo(vdist, from);
+			minDistTo(vdist, from, vChanges);
 		}
 		HashSet<Integer> wSet = new HashSet<Integer>();
 		for (int from : w) {
 			wSet.add(from);
-			wdist = minDistTo(wdist, from);
+			minDistTo(wdist, from, wChanges);
 		}
 		int minAncestor = -1;
 		int minDist = -1;
