@@ -23,24 +23,23 @@ class CachingBFS {
 		public final boolean[] marked;
 		public final int[] distTo;
 		public final int[] edgeTo;
-		private final HashSet<Integer> changed;
+		private final Queue<Integer> changed;
 
 		public CachedArrays(int size) {
 			marked = new boolean[G.V()];
 			distTo = new int[G.V()];
 			edgeTo = new int[G.V()];
 			for (int v = 0; v < G.V(); v++) distTo[v] = INFINITY;
-			changed = new HashSet<Integer>();
+			changed = new Queue<Integer>();
 		}
 
 		// Clear this cache entry for reuse.
 		public void clear() {
-			for (int i : changed) {
+			for (int i = changed.dequeue(); !changed.isEmpty(); i = changed.dequeue()) {
 				marked[i] = false;
 				distTo[i] = INFINITY;
 				edgeTo[i] = 0;
 			}
-			changed.clear();
 		}
 
 		// For testing that this cache is an appropriate size.
@@ -48,7 +47,7 @@ class CachingBFS {
 
 		// Mark that an index in the arrays has changed so it can be cleared
 		// later for reuse.
-		public void markChanged(int index) { changed.add(index); }
+		public void markChanged(int index) { changed.enqueue(index); }
 	}
 
 	private void instantiate(CachedArrays c, int size) {
