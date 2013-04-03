@@ -26,10 +26,10 @@ class CachingBFS {
 		private final Queue<Integer> changed;
 
 		public CachedArrays(int size) {
-			marked = new boolean[G.V()];
-			distTo = new int[G.V()];
-			edgeTo = new int[G.V()];
-			for (int v = 0; v < G.V(); v++) distTo[v] = INFINITY;
+			marked = new boolean[size];
+			distTo = new int[size];
+			edgeTo = new int[size];
+			for (int v = 0; v < size; v++) distTo[v] = INFINITY;
 			changed = new Queue<Integer>();
 		}
 
@@ -43,35 +43,35 @@ class CachingBFS {
 		}
 
 		// For testing that this cache is an appropriate size.
-		public int size() { return marked.length }
+		public int size() { return marked.length; }
 
 		// Mark that an index in the arrays has changed so it can be cleared
 		// later for reuse.
 		public void markChanged(int index) { changed.enqueue(index); }
 	}
 
-	private void instantiate(CachedArrays c, int size) {
+	private CachedArrays instantiate(CachedArrays c, int size) {
 		if (c == null)
 			c = new CachedArrays(size);
 		else {
 			assert c.size() == size;
 			c.clear();
 		}
-		cachedArrays = c;
 		marked = c.marked;
 		distTo = c.distTo;
 		edgeTo = c.edgeTo;
+		return c;
 	}
 
 	// single source
 	public CachingBFS(Digraph G, int s, CachedArrays c) {
-		instantiate(c, G.V());
+		cachedArrays = instantiate(c, G.V());
 		bfs(G, s);
 	}
 
 	// multiple sources
-	public BreadthFirstDirectedPaths(Digraph G, Iterable<Integer> sources) {
-		instantiate(c, G.V());
+	public CachingBFS(Digraph G, Iterable<Integer> sources, CachedArrays c) {
+		cachedArrays = instantiate(c, G.V());
 		bfs(G, sources);
 	}
 
