@@ -31,7 +31,7 @@ public class SAP {
 		private int itemSize;
 
 		public CacheQueue(int s) {
-			super.CacheQueue();
+			super();
 			itemSize = s;
 		}
 
@@ -64,6 +64,7 @@ public class SAP {
 			}
 			return e;
 		}
+	}
 
 	/**
 	 * Constructor.
