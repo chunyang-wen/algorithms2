@@ -59,15 +59,15 @@ public class Outcast {
 	 *          should but do not have to be equal lengths.
 	 * @return The row index whose sum after reflection is greatest.
 	 */
-	public int[] argMaxUpperTriangular(int[][] a) {
+	public int argMaxUpperTriangular(int[][] a) {
 		int sum, max, argmax;
-		max = 0;
+		max = argmax = 0;
 		for (int i = 0; i < a.length; i++) {
 			sum = 0;
 			for (int j = 0; j < a[i].length; j++)
 				sum += j < i ?  a[j][i] : a[i][j];
 			if (i == 0 || sum > max) {
-				min = sum;
+				max = sum;
 				argmax = i;
 			}
 		}
