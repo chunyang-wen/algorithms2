@@ -55,13 +55,8 @@ public class SAP {
 
 		private E rotate() {
 			if (isEmpty()) return null;
-			E e = first.item();
-			if (size() > 1) {
-				last.next = first;
-				last = last.next;
-				first = first.next;
-				last.next = null;
-			}
+			E e = dequeue();
+			enqueue(e);
 			return e;
 		}
 	}
