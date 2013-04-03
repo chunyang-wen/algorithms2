@@ -1,0 +1,128 @@
+/*************************************************************************
+ * Compilation:  javac CachingBFS.java
+ * Execution:    java CachingBFS V E
+ * Dependencies: Digraph.java Queue.java Stack.java
+ *
+ * Run breadth first search on a digraph. Runs in O(E + V) time. Supports
+ * caching of its main data strucutres to avoid reallocation when running BFS on
+ * the same graph multiple times.
+ *
+ * Based on BreadthFirstDirectedPaths by Kevin Wayne and Robert Sedgwick of
+ * Princeton University. The main BFS algorithms are theirs. The idea for the
+ * cache comes from their assignment instructions, but I built it.
+ *************************************************************************/
+
+class CachingBFS {
+	private static final int INFINITY = Integer.MAX_VALUE;
+	private boolean[] marked;  // marked[v] = is there an s->v path?
+	private int[] edgeTo;      // edgeTo[v] = last edge on shortest s->v path
+	private int[] distTo;      // distTo[v] = length of shortest s->v path
+	private final CachedArrays cachedArrays;
+
+	public class CachedArrays {
+		public final boolean[] marked;
+		public final int[] distTo;
+		public final int[] edgeTo;
+		private final HashSet<Integer> changed;
+
+		public CachedArrays(int size) {
+			marked = new boolean[G.V()];
+			distTo = new int[G.V()];
+			edgeTo = new int[G.V()];
+			for (int v = 0; v < G.V(); v++) distTo[v] = INFINITY;
+			changed = new HashSet<Integer>();
+		}
+
+		// Clear this cache entry for reuse.
+		public void clear() {
+			for (int i : changed) {
+				marked[i] = false;
+				distTo[i] = INFINITY;
+				edgeTo[i] = 0;
+			}
+			changed.clear();
+		}
+
+		// For testing that this cache is an appropriate size.
+		public int size() { return marked.length }
+
+		// Mark that an index in the arrays has changed so it can be cleared
+		// later for reuse.
+		public void markChanged(int index) { changed.add(index); }
+	}
+
+	private void instantiate(CachedArrays c, int size) {
+		if (c == null)
+			c = new CachedArrays(size);
+		else {
+			assert c.size() == size;
+			c.clear();
+		}
+		cachedArrays = c;
+		marked = c.marked;
+		distTo = c.distTo;
+		edgeTo = c.edgeTo;
+	}
+
+	// single source
+	public CachingBFS(Digraph G, int s, CachedArrays c) {
+		instantiate(c, G.V());
+		bfs(G, s);
+	}
+
+	// multiple sources
+	public BreadthFirstDirectedPaths(Digraph G, Iterable<Integer> sources) {
+		instantiate(c, G.V());
+		bfs(G, sources);
+	}
+
+	// BFS from single source
+	private void bfs(Digraph G, int s) {
+		Queue<Integer> q = new Queue<Integer>();
+		marked[s] = true;
+		distTo[s] = 0;
+		cachedArrays.markChanged(s);
+		q.enqueue(s);
+		while (!q.isEmpty()) {
+			int v = q.dequeue();
+			for (int w : G.adj(v)) {
+				if (!marked[w]) {
+					edgeTo[w] = v;
+					distTo[w] = distTo[v] + 1;
+					marked[w] = true;
+					cachedArrays.markChanged(w);
+					q.enqueue(w);
+				}
+			}
+		}
+	}
+
+	// BFS from multiple sources
+	private void bfs(Digraph G, Iterable<Integer> sources) {
+		Queue<Integer> q = new Queue<Integer>();
+		for (int s : sources) {
+			marked[s] = true;
+			distTo[s] = 0;
+			q.enqueue(s);
+			cachedArrays.markChanged(s);
+		}
+		while (!q.isEmpty()) {
+			int v = q.dequeue();
+			for (int w : G.adj(v)) {
+				if (!marked[w]) {
+					edgeTo[w] = v;
+					distTo[w] = distTo[v] + 1;
+					marked[w] = true;
+					cachedArrays.markChanged(w);
+					q.enqueue(w);
+				}
+			}
+		}
+	}
+
+	// length of shortest path from s (or sources) to v
+	public int distTo(int v) { return distTo[v]; }
+
+	// is there a directed path from s (or sources) to v?
+	public boolean hasPathTo(int v) { return marked[v]; }
+}
