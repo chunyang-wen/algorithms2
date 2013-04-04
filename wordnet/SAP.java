@@ -24,43 +24,8 @@
  */
 public class SAP {
 	private final Digraph g;
-	private final CacheQueue bfsCache;
-
-	private class CacheQueue {
-		private int available;
-		private int itemSize;
-		private Queue<CachingBFS.CachedArrays> q;
-
-		public CacheQueue(int s) {
-			q = new Queue<CachingBFS.CachedArrays>();
-			itemSize = s;
-		}
-
-		public CachingBFS.CachedArrays next() {
-			CachingBFS.CachedArrays e;
-			if (available > 0) {
-				e = rotate();
-				available--;
-			}
-			else {
-				e = new CachingBFS.CachedArrays(itemSize);
-				q.enqueue(e);
-			}
-			return e;
-		}
-
-		public void replenish() {
-			if (available < q.size())
-				available++;
-		}
-
-		private CachingBFS.CachedArrays rotate() {
-			if (q.isEmpty()) return null;
-			CachingBFS.CachedArrays e = q.dequeue();
-			q.enqueue(e);
-			return e;
-		}
-	}
+	private final CachingBFS.CachedArrays vcache;
+	private final CachingBFS.CachedArrays wcache;
 
 	/**
 	 * Constructor.
@@ -70,15 +35,14 @@ public class SAP {
 	 */
 	public SAP(Digraph G) {
 		g = new Digraph(G); // Defensive copy.
-		bfsCache = new CacheQueue(G.V());
+		vcache = new CachingBFS.CachedArrays(g.V());
+		wcache = new CachingBFS.CachedArrays(g.V());
 	}
 
 
 	// length of shortest ancestral path between v and w; -1 if no such path
 	public int length(int v, int w) {
-		CachingBFS.CachedArrays vcache = bfsCache.next();
 		CachingBFS pv = new CachingBFS(g, v, vcache);
-		CachingBFS.CachedArrays wcache = bfsCache.next();
 		CachingBFS pw = new CachingBFS(g, w, wcache);
 		int min, dist;
 		min = -1;
@@ -96,19 +60,15 @@ public class SAP {
 					min = dist;
 			}
 		}
-		bfsCache.replenish();
-		bfsCache.replenish();
 		return min;
 	}
 
 	// a common ancestor of v and w that participates in a shortest ancestral
 	// path; -1 if no such path
 	public int ancestor(int v, int w) {
-		CachingBFS.CachedArrays vcache = bfsCache.next();
 		CachingBFS pv = new CachingBFS(g, v, vcache);
 		if (pv.hasPathTo(w))
 			return w;
-		CachingBFS.CachedArrays wcache = bfsCache.next();
 		CachingBFS pw = new CachingBFS(g, w, wcache);
 		int min, dist, argmin;
 		argmin = -1;
@@ -131,16 +91,12 @@ public class SAP {
 				}
 			}
 		}
-		bfsCache.replenish();
-		bfsCache.replenish();
 		return argmin;
 	}
 
 	// length of shortest ancestral path between any vertex in v and any vertex
 	// in w; -1 if no such path. Iterables must contain at least one int.
 	public int length(Iterable<Integer> v, Iterable<Integer> w) {
-		CachingBFS.CachedArrays vcache = bfsCache.next();
-		CachingBFS.CachedArrays wcache = bfsCache.next();
 		CachingBFS pv = new CachingBFS(g, v, vcache);
 		CachingBFS pw = new CachingBFS(g, w, wcache);
 		int min, dist;
@@ -159,16 +115,12 @@ public class SAP {
 					min = dist;
 			}
 		}
-		bfsCache.replenish();
-		bfsCache.replenish();
 		return min;
 	}
 
 	// a common ancestor that participates in shortest ancestral path; -1 if no
 	// such path. Iterables must contain at least one int.
 	public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
-		CachingBFS.CachedArrays vcache = bfsCache.next();
-		CachingBFS.CachedArrays wcache = bfsCache.next();
 		CachingBFS pv = new CachingBFS(g, v, vcache);
 		CachingBFS pw = new CachingBFS(g, w, wcache);
 		int min, dist, argmin;
@@ -192,8 +144,6 @@ public class SAP {
 				}
 			}
 		}
-		bfsCache.replenish();
-		bfsCache.replenish();
 		return argmin;
 	}
 
