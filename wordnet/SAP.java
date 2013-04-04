@@ -39,11 +39,9 @@ public class SAP {
 		wcache = new CachingBFS.CachedArrays(g.V());
 	}
 
-
-	// length of shortest ancestral path between v and w; -1 if no such path
-	public int length(int v, int w) {
-		CachingBFS pv = new CachingBFS(g, v, vcache);
-		CachingBFS pw = new CachingBFS(g, w, wcache);
+	// Return the min distance to a common node using the v/wcaches. -1 if none
+	// found.
+	private int min(CachingBFS pv, CachingBFS pw) {
 		int min, dist;
 		min = -1;
 		for (int node : vcache) {
@@ -61,6 +59,38 @@ public class SAP {
 			}
 		}
 		return min;
+	}
+
+	// Return the min distance ancestor to a common node using the v/wcaches. -1
+	// if none found.
+	private int argmin(CachingBFS pv, CachingBFS pw) {
+		int min, dist, argmin;
+		argmin = -1;
+		min = -1;
+		for (int node : vcache) {
+			if (pw.hasPathTo(node)) {
+				dist = pv.distTo(node) + pw.distTo(node);
+				if (min < 0 || dist < min) {
+					min = dist;
+					argmin = node;
+				}
+			}
+		}
+		for (int node : wcache) {
+			if (pv.hasPathTo(node)) {
+				dist = pv.distTo(node) + pw.distTo(node);
+				if (min < 0 || dist < min) {
+					min = dist;
+					argmin = node;
+				}
+			}
+		}
+		return argmin;
+	}
+
+	// length of shortest ancestral path between v and w; -1 if no such path
+	public int length(int v, int w) {
+		return min(new CachingBFS(g, v, vcache), new CachingBFS(g, w, wcache));
 	}
 
 	// a common ancestor of v and w that participates in a shortest ancestral
@@ -70,52 +100,13 @@ public class SAP {
 		if (pv.hasPathTo(w))
 			return w;
 		CachingBFS pw = new CachingBFS(g, w, wcache);
-		int min, dist, argmin;
-		argmin = -1;
-		min = -1;
-		for (int node : vcache) {
-			if (pw.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min) {
-					min = dist;
-					argmin = node;
-				}
-			}
-		}
-		for (int node : wcache) {
-			if (pv.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min) {
-					min = dist;
-					argmin = node;
-				}
-			}
-		}
-		return argmin;
+		return argmin(pv, pw);
 	}
 
 	// length of shortest ancestral path between any vertex in v and any vertex
 	// in w; -1 if no such path. Iterables must contain at least one int.
 	public int length(Iterable<Integer> v, Iterable<Integer> w) {
-		CachingBFS pv = new CachingBFS(g, v, vcache);
-		CachingBFS pw = new CachingBFS(g, w, wcache);
-		int min, dist;
-		min = -1;
-		for (int node : vcache) {
-			if (pw.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min)
-					min = dist;
-			}
-		}
-		for (int node : wcache) {
-			if (pv.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min)
-					min = dist;
-			}
-		}
-		return min;
+		return min(new CachingBFS(g, v, vcache), new CachingBFS(g, w, wcache));
 	}
 
 	// a common ancestor that participates in shortest ancestral path; -1 if no
@@ -123,28 +114,7 @@ public class SAP {
 	public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
 		CachingBFS pv = new CachingBFS(g, v, vcache);
 		CachingBFS pw = new CachingBFS(g, w, wcache);
-		int min, dist, argmin;
-		argmin = -1;
-		min = -1;
-		for (int node : vcache) {
-			if (pw.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min) {
-					min = dist;
-					argmin = node;
-				}
-			}
-		}
-		for (int node : wcache) {
-			if (pv.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min) {
-					min = dist;
-					argmin = node;
-				}
-			}
-		}
-		return argmin;
+		return argmin(pv, pw);
 	}
 
 	/**
