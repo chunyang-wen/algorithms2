@@ -45,7 +45,7 @@ public class SAP {
 		int min, dist;
 		min = -1;
 		CachingBFS.CachedArrays[] its = {vcache, wcache};
-		for (Iterable<Integer> it : its ) {
+		for (Iterable<Integer> it : its) {
 			for (int node : it) {
 				if (pv.hasPathTo(node) && pw.hasPathTo(node)) {
 					dist = pv.distTo(node) + pw.distTo(node);
@@ -64,7 +64,7 @@ public class SAP {
 		argmin = -1;
 		min = -1;
 		CachingBFS.CachedArrays[] its = {vcache, wcache};
-		for (Iterable<Integer> it : its ) {
+		for (Iterable<Integer> it : its) {
 			for (int node : it) {
 				if (pv.hasPathTo(node) && pw.hasPathTo(node)) {
 					dist = pv.distTo(node) + pw.distTo(node);
