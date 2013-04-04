@@ -12,6 +12,8 @@
  * cache comes from their assignment instructions, but I built it.
  *************************************************************************/
 
+import java.util.Iterator;
+
 class CachingBFS {
 	private static final int INFINITY = Integer.MAX_VALUE;
 	private boolean[] marked;  // marked[v] = is there an s->v path?
@@ -19,7 +21,7 @@ class CachingBFS {
 	private int[] distTo;      // distTo[v] = length of shortest s->v path
 	private final CachedArrays cachedArrays;
 
-	public static class CachedArrays {
+	public static class CachedArrays implements Iterable<Integer> {
 		private final boolean[] marked;
 		private final int[] distTo;
 		private final int[] edgeTo;
@@ -33,6 +35,8 @@ class CachingBFS {
 				distTo[v] = INFINITY;
 			changed = new Queue<Integer>();
 		}
+
+		public Iterator<Integer> iterator() { return changed.iterator(); }
 
 		// Clear this cache entry for reuse.
 		public void clear() {
