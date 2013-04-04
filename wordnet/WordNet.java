@@ -104,7 +104,7 @@ public class WordNet {
 		// such node.
 		int numRoots = 0;
 		for (int vertex = 0; vertex < g.V(); vertex++)
-			if (g.adj(vertex).size() == 0)
+			if (!g.adj(vertex).iterator().hasNext())
 				numRoots++;
 		if (numRoots != 1)
 			throw new IllegalArgumentException(hypernyms + " is not rooted.");
