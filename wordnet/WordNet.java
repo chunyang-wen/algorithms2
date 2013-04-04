@@ -43,9 +43,14 @@ public class WordNet {
 	 * rooted DAG.
 	 */
 	public WordNet(String synsets, String hypernyms) {
-		// Read synsets files. Prepare mappings among synsets, ids, and words.
 		id2synset = new HashMap<Integer, String>();
 		noun2ids = new HashMap<String, Bag<Integer>>();
+		buildSynsets(synsets);
+		paths = new SAP(buildHypernyms(hypernyms, id2synset.size()));
+	}
+
+	// Read synsets files. Prepare mappings among synsets, ids, and words.
+	private void buildSynsets(String synsets) {
 		In file = new In(synsets);
 		String[] line;
 		int id;
@@ -66,22 +71,30 @@ public class WordNet {
 				}
 			}
 		}
-		// Read hypernyms digraph. Test for cycles. Prepare
-		// shortest-ancestral-path data type.
-		Digraph g = new Digraph(id2synset.size());
-		file = new In(hypernyms);
+	}
+
+	// Read hypernyms digraph
+	private Digraph buildHypernyms(String hypernyms, int numSynsets) {
+		Digraph g = new Digraph(numSynsets);
+		In file = new In(hypernyms);
+		String[] line;
+		int id;
 		while (!file.isEmpty()) {
 			line = file.readLine().split(",");
 			id = Integer.parseInt(line[0]);
 			for (int i = 1; i < line.length; i++)
 				g.addEdge(id, Integer.parseInt(line[i]));
 		}
+		detectCycles(g, hypernyms);
+		return g;
+	}
+
+	private void detectCycles(Digraph g, String hypernyms) {
 		DirectedCycle dc = new DirectedCycle(g);
 		if (dc.hasCycle()) {
 			String msg = hypernyms + " does not represent a DAG";
 			throw new IllegalArgumentException(msg);
 		}
-		this.paths = new SAP(g);
 	}
 
 	/**
