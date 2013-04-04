@@ -158,20 +158,19 @@ public class WordNet {
 	public static void main(String[] args) {
 		WordNet wn = new WordNet(args[0], args[1]);
 		while (!StdIn.isEmpty()) {
-			StdOut.printf("Name two nouns to query their relatedness: ");
 			String v = StdIn.readString();
 			String w = StdIn.readString();
 			if (!wn.isNoun(v)) {
-				StdOut.printf(v + " not in the word net");
+				StdOut.println(v + " not in the word net");
 				continue;
 			}
 			if (!wn.isNoun(w)) {
-				StdOut.printf(w + " not in the word net");
+				StdOut.println(w + " not in the word net");
 				continue;
 			}
 			int distance = wn.distance(v, w);
 			String ancestor = wn.sap(v, w);
-			StdOut.printf("distance = %d, ancestor = %d\n", distance, ancestor);
+			StdOut.printf("distance = %d, ancestor = %s\n", distance, ancestor);
 		}
 	}
 }
