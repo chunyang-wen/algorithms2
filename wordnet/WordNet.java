@@ -86,6 +86,7 @@ public class WordNet {
 				g.addEdge(id, Integer.parseInt(line[i]));
 		}
 		detectCycles(g, hypernyms);
+		detectRootedness(g, hypernyms);
 		return g;
 	}
 
@@ -95,6 +96,18 @@ public class WordNet {
 			String msg = hypernyms + " does not represent a DAG";
 			throw new IllegalArgumentException(msg);
 		}
+	}
+
+	// Throw error if input does not have exactly one root.
+	private void detectRootedness(Digraph g, String hypernyms) {
+		// A root is a node with outdegree zero. A rooted DAG has exactly one
+		// such node.
+		int numRoots = 0;
+		for (int vertex = 0; vertex < g.V(); vertex++)
+			if (g.adj(vertex).size() == 0)
+				numRoots++;
+		if (numRoots != 1)
+			throw new IllegalArgumentException(hypernyms + " is not rooted.");
 	}
 
 	/**
