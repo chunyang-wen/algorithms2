@@ -87,8 +87,6 @@ public class SAP {
 	// path; -1 if no such path
 	public int ancestor(int v, int w) {
 		CachingBFS pv = new CachingBFS(g, v, vcache);
-		if (pv.hasPathTo(w))
-			return w;
 		CachingBFS pw = new CachingBFS(g, w, wcache);
 		return argmin(pv, pw);
 	}
