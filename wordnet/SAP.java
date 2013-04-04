@@ -78,8 +78,6 @@ public class SAP {
 	public int length(int v, int w) {
 		CachingBFS.CachedArrays vcache = bfsCache.next();
 		CachingBFS pv = new CachingBFS(g, v, vcache);
-		if (pv.hasPathTo(w))
-			return pv.distTo(w);
 		CachingBFS.CachedArrays wcache = bfsCache.next();
 		CachingBFS pw = new CachingBFS(g, w, wcache);
 		int min, dist;
