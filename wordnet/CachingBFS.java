@@ -19,7 +19,7 @@ class CachingBFS {
 	private int[] distTo;      // distTo[v] = length of shortest s->v path
 	private final CachedArrays cachedArrays;
 
-	public class CachedArrays {
+	public static class CachedArrays {
 		public final boolean[] marked;
 		public final int[] distTo;
 		public final int[] edgeTo;

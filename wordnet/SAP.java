@@ -24,39 +24,40 @@
  */
 public class SAP {
 	private final Digraph g;
-	private final CacheQueue<CachingBFS.CachedArrays> BFSCache;
+	private final CacheQueue BFSCache;
 
-	private class CacheQueue<E> extends Queue<E> {
+	private class CacheQueue {
 		private int available;
 		private int itemSize;
+		private Queue<CachingBFS.CachedArrays> q;
 
 		public CacheQueue(int s) {
-			super();
+			q = new Queue<CachingBFS.CachedArrays>();
 			itemSize = s;
 		}
 
-		public E next() {
-			E e;
+		public CachingBFS.CachedArrays next() {
+			CachingBFS.CachedArrays e;
 			if (available > 0) {
 				e = rotate();
 				available--;
 			}
 			else {
 				e = new CachingBFS.CachedArrays(itemSize);
-				enqueue(e);
+				q.enqueue(e);
 			}
 			return e;
 		}
 
 		public void replenish() {
-			if (available < size())
+			if (available < q.size())
 				available++;
 		}
 
-		private E rotate() {
-			if (isEmpty()) return null;
-			E e = dequeue();
-			enqueue(e);
+		private CachingBFS.CachedArrays rotate() {
+			if (q.isEmpty()) return null;
+			CachingBFS.CachedArrays e = q.dequeue();
+			q.enqueue(e);
 			return e;
 		}
 	}
@@ -69,8 +70,7 @@ public class SAP {
 	 */
 	public SAP(Digraph G) {
 		g = new Digraph(G); // Defensive copy.
-		CacheQueue<CachingBFS.CachedArrays> BFSCache = new
-			CacheQueue<CachingBFS.CachedArrays>(G.V());
+		BFSCache = new CacheQueue(G.V());
 	}
 
 
