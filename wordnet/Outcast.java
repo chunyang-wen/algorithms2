@@ -61,11 +61,16 @@ public class Outcast {
 	 */
 	private int argMaxUpperTriangular(int[][] a) {
 		int sum, max, argmax;
-		max = argmax = 0;
+		max = 0;
+		argmax = 0;
 		for (int i = 0; i < a.length; i++) {
 			sum = 0;
-			for (int j = 0; j < a[i].length; j++)
-				sum += j < i ?  a[j][i] : a[i][j];
+			for (int j = 0; j < a[i].length; j++) {
+				if (j < i)
+					sum += a[j][i];
+				else
+					sum += a[i][j];
+			}
 			if (i == 0 || sum > max) {
 				max = sum;
 				argmax = i;

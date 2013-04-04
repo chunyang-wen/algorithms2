@@ -11,7 +11,6 @@
  *
  ************************************************************************/
 
-import java.lang.IllegalArgumentException;
 import java.util.HashMap;
 
 /**
@@ -99,7 +98,7 @@ public class WordNet {
 	// distance() and sap().
 	private void areBothNouns(String nounA, String nounB) {
 		if (!isNoun(nounA) || !isNoun(nounB)) {
-			String msg = "One of these nouns is not in the WordNet: " + nounA + " " + nounB;
+			String msg = "One is not in the WordNet: " + nounA + " " + nounB;
 			throw new IllegalArgumentException(msg);
 		}
 	}

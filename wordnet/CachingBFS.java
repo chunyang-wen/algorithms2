@@ -20,16 +20,17 @@ class CachingBFS {
 	private final CachedArrays cachedArrays;
 
 	public static class CachedArrays {
-		public final boolean[] marked;
-		public final int[] distTo;
-		public final int[] edgeTo;
+		private final boolean[] marked;
+		private final int[] distTo;
+		private final int[] edgeTo;
 		private final Queue<Integer> changed;
 
 		public CachedArrays(int size) {
 			marked = new boolean[size];
 			distTo = new int[size];
 			edgeTo = new int[size];
-			for (int v = 0; v < size; v++) distTo[v] = INFINITY;
+			for (int v = 0; v < size; v++)
+				distTo[v] = INFINITY;
 			changed = new Queue<Integer>();
 		}
 
@@ -50,20 +51,13 @@ class CachingBFS {
 		// Mark that an index in the arrays has changed so it can be cleared
 		// later for reuse.
 		public void markChanged(int index) { changed.enqueue(index); }
+
+		// Accessor methods for the cached arrays.
+		public boolean[] marked() { return marked; }
+		public int[] distTo() { return distTo; }
+		public int[] edgeTo() { return edgeTo; }
 	}
 
-	private CachedArrays instantiate(CachedArrays c, int size) {
-		if (c == null)
-			c = new CachedArrays(size);
-		else {
-			assert c.size() == size;
-			c.clear();
-		}
-		marked = c.marked;
-		distTo = c.distTo;
-		edgeTo = c.edgeTo;
-		return c;
-	}
 
 	// single source
 	public CachingBFS(Digraph G, int s, CachedArrays c) {
@@ -75,6 +69,21 @@ class CachingBFS {
 	public CachingBFS(Digraph G, Iterable<Integer> sources, CachedArrays c) {
 		cachedArrays = instantiate(c, G.V());
 		bfs(G, sources);
+	}
+
+	private CachedArrays instantiate(CachedArrays c, int size) {
+		CachedArrays cc;
+		if (c == null)
+			cc = new CachedArrays(size);
+		else {
+			assert c.size() == size;
+			c.clear();
+			cc = c;
+		}
+		marked = cc.marked();
+		distTo = cc.distTo();
+		edgeTo = cc.edgeTo();
+		return cc;
 	}
 
 	// BFS from single source
