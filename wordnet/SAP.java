@@ -44,18 +44,14 @@ public class SAP {
 	private int min(CachingBFS pv, CachingBFS pw) {
 		int min, dist;
 		min = -1;
-		for (int node : vcache) {
-			if (pw.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min)
-					min = dist;
-			}
-		}
-		for (int node : wcache) {
-			if (pv.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min)
-					min = dist;
+		CachingBFS.CachedArrays[] its = {vcache, wcache};
+		for (Iterable<Integer> it : its ) {
+			for (int node : it) {
+				if (pv.hasPathTo(node) && pw.hasPathTo(node)) {
+					dist = pv.distTo(node) + pw.distTo(node);
+					if (min < 0 || dist < min)
+						min = dist;
+				}
 			}
 		}
 		return min;
@@ -67,21 +63,15 @@ public class SAP {
 		int min, dist, argmin;
 		argmin = -1;
 		min = -1;
-		for (int node : vcache) {
-			if (pw.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min) {
-					min = dist;
-					argmin = node;
-				}
-			}
-		}
-		for (int node : wcache) {
-			if (pv.hasPathTo(node)) {
-				dist = pv.distTo(node) + pw.distTo(node);
-				if (min < 0 || dist < min) {
-					min = dist;
-					argmin = node;
+		CachingBFS.CachedArrays[] its = {vcache, wcache};
+		for (Iterable<Integer> it : its ) {
+			for (int node : it) {
+				if (pv.hasPathTo(node) && pw.hasPathTo(node)) {
+					dist = pv.distTo(node) + pw.distTo(node);
+					if (min < 0 || dist < min) {
+						min = dist;
+						argmin = node;
+					}
 				}
 			}
 		}
