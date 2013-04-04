@@ -35,7 +35,9 @@ class CachingBFS {
 
 		// Clear this cache entry for reuse.
 		public void clear() {
-			for (int i = changed.dequeue(); !changed.isEmpty(); i = changed.dequeue()) {
+			int i;
+			while (!changed.isEmpty()) {
+				i = changed.dequeue();
 				marked[i] = false;
 				distTo[i] = INFINITY;
 				edgeTo[i] = 0;
