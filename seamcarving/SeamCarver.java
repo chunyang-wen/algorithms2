@@ -122,14 +122,16 @@ public class SeamCarver {
 	private int row(int node) { return node / width(); }
 	// Edges point downward to the three neighboring points the row below.
 	private Iterable<Integer> adj(int from) {
+		if (from < 0 || from >= width() * height())
+			throw new IllegalArgumentException(Integer.toString(from));
 		Queue<Integer> neighbors = new Queue<Integer>();
-		if (from >= width() * height())
+		if (row(from) == height() - 1)
 			return neighbors;
-		if (col(from) != 0)
-			neighbors.enqueue(from + width() - 1);
-		neighbors.enqueue(from + width());
-		if (col(from) != width())
-			neighbors.enqueue(from + width() + 1);
+		if (col(from) > 0)
+			neighbors.enqueue(node(col(from) - 1, row(from) + 1));
+		neighbors.enqueue(node(col(from), row(from) + 1));
+		if (col(from) < width() - 1)
+			neighbors.enqueue(node(col(from) + 1, row(from) + 1));
 		return neighbors;
 	}
 
