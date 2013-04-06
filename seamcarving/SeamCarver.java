@@ -42,7 +42,39 @@ public class SeamCarver {
 	public int[] findHorizontalSeam();
 
 	// sequence of indices for vertical seam
-	public int[] findVerticalSeam();
+	public int[] findVerticalSeam() {
+		int size = width() * height();
+		assert size == node(width() - 1, height() - 1) + 1;
+		double[] weights = new double[size];
+		double[] distTo = new double[size];
+		int[] edgeTo = new int[size];
+		for (int v = node(0, 0); v < size; v++) {
+			if (row(v) == 1)
+				distTo[v] = 0.0;
+			else
+				distTo[v] = Double.POSITIVE_INFINITY;
+			edgeTo[v] = -1;
+			weights[v] = energy(col(v), row(v));
+		}
+		for (int v : toporder())
+			for (int w : adj(v))
+				relax(v, w, weights, distTo, edgeTo);
+		// Find min weight bottom node
+		double min = Double.POSITIVE_INFINITY;
+		int argmin = node(0, height() - 1);
+		for (int v = node(0, height() - 1); v < size; v++) {
+			if (distTo[v] < min) {
+				min = distTo[v];
+				argmin = v;
+			}
+		}
+		// get path to min weight bottom node
+		int[] seam = new int[height()];
+		seam[row(argmin)] = col(argmin);
+		for (int prev = edgeTo[argmin]; prev >= 0; prev = edgeTo[prev])
+			seam[row(prev)] = col(prev);
+		return seam;
+	}
 
 	// Mapping between node ID numbers and (col, row) notation. No bounds
 	// checking is performed so use with caution.
