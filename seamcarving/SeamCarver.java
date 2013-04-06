@@ -47,7 +47,7 @@ public class SeamCarver {
 	}
 
 	private void transpose() {
-		Picture p = new Picture(width(), height());
+		Picture p = new Picture(height(), width());
 		for (int col = 0; col < width(); col++)
 			for (int row = 0; row < height(); row++)
 				p.set(row, col, pic.get(col, row));
