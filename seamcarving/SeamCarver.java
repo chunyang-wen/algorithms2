@@ -76,6 +76,14 @@ public class SeamCarver {
 		return seam;
 	}
 
+	private void relax(int from, int to, double[] weights, double[] distTo, int[] edgeTo) {
+		int toc = col(to), tor = row(to);
+		if (distTo[to] > distTo[from] + weights[to]) {
+			distTo[to] = distTo[from] + weights[to];
+			edgeTo[to] = from;
+		}
+	}
+
 	// Return the node IDs in topological order
 	private Iterable<Integer> toporder() {
 		Stack<Integer> toporder = new Stack<Integer>();
