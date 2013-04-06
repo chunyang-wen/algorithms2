@@ -76,6 +76,24 @@ public class SeamCarver {
 		return seam;
 	}
 
+	// Return the node IDs in topological order
+	private Iterable<Integer> toporder() {
+		Stack<Integer> toporder = new Stack<Integer>();
+		boolean[] marked = new boolean[width() * height()];
+		for (int id = 0; id < marked.length; id++)
+			if (!marked[id])
+				dfs(id, marked, toporder);
+		return toporder;
+	}
+
+	private void dfs(int v, boolean[] marked, Stack<Integer> toporder) {
+		marked[v] = true;
+		for (int w : adj(v))
+			if (!marked[w])
+				dfs(w, marked, toporder);
+		toporder.push(v);
+	}
+
 	// Mapping between node ID numbers and (col, row) notation. No bounds
 	// checking is performed so use with caution.
 	private int node(int col, int row) { return row * width() + col; }
