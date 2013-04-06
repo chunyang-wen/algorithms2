@@ -51,9 +51,15 @@ public class SeamCarver {
 			throw new java.lang.IllegalArgumentException(msg);
 		}
 		Picture p = new Picture(width(), height() - 1);
+		int lastrow = a[0];
 		for (int col = 0; col < width(); col++) {
+			if (a[col] < lastrow - 1 || a[col] > lastrow + 1)
+				throw new java.lang.IllegalArgumentException("Non-valid seam");
+			if (a[col] < 0 || a[col] >= height())
+				throw new IndexOutOfBoundsException(Integer.toString(a[col]));
+			lastrow = a[col];
 			for (int row = 0; row < height() - 1; row++) {
-				if (row < a[col])
+				if (row < lastrow)
 					p.set(col, row, pic.get(col, row));
 				else
 					p.set(col, row, pic.get(col, row + 1));
@@ -74,9 +80,15 @@ public class SeamCarver {
 			throw new java.lang.IllegalArgumentException(msg);
 		}
 		Picture p = new Picture(width() - 1, height());
+		int lastcol = a[0];
 		for (int row = 0; row < height(); row++) {
+			if (a[row] < lastcol - 1 || a[row] > lastcol + 1)
+				throw new IllegalArgumentException("Non-valid seam");
+			if (a[row] < 0 || a[row] >= width())
+				throw new IndexOutOfBoundsException(Integer.toString(a[row]));
+			lastcol = a[row];
 			for (int col = 0; col < width() - 1; col++) {
-				if (col < a[row])
+				if (col < lastcol)
 					p.set(col, row, pic.get(col, row));
 				else
 					p.set(col, row, pic.get(col + 1, row));
