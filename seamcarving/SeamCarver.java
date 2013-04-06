@@ -44,17 +44,17 @@ public class SeamCarver {
 	public void removeHorizontalSeam(int[] a) {
 		if (height() == 0) {
 			String msg = "Cannot remove horizontal seam from 0-height picture";
-			throw new java.lang.IllegalArgumentException(msg);
+			throw new IllegalArgumentException(msg);
 		}
 		if (a.length != width()) {
 			String msg = "Horizontal seam narrower than width of picture";
-			throw new java.lang.IllegalArgumentException(msg);
+			throw new IllegalArgumentException(msg);
 		}
 		Picture p = new Picture(width(), height() - 1);
 		int lastrow = a[0];
 		for (int col = 0; col < width(); col++) {
 			if (a[col] < lastrow - 1 || a[col] > lastrow + 1)
-				throw new java.lang.IllegalArgumentException("Non-valid seam");
+				throw new IllegalArgumentException("Non-valid seam");
 			if (a[col] < 0 || a[col] >= height())
 				throw new IndexOutOfBoundsException(Integer.toString(a[col]));
 			lastrow = a[col];
@@ -73,11 +73,11 @@ public class SeamCarver {
 	public void removeVerticalSeam(int[] a) {
 		if (width() == 0) {
 			String msg = "Cannot remove vertical seam from zero-width picture";
-			throw new java.lang.IllegalArgumentException(msg);
+			throw new IllegalArgumentException(msg);
 		}
 		if (a.length != height()) {
 			String msg = "Vertical seam shorter than height of picture";
-			throw new java.lang.IllegalArgumentException(msg);
+			throw new IllegalArgumentException(msg);
 		}
 		Picture p = new Picture(width() - 1, height());
 		int lastcol = a[0];
