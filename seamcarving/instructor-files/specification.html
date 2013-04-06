@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- saved from url=(0067)http://coursera.cs.princeton.edu/algs4/assignments/seamCarving.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>
+Programming Assignment 2: Seam Carving
+</title>
+<style type="text/css"></style></head>
+
+<body class=" hasGoogleVoiceExt">
+<h2>Programming Assignment 2: Seam Carving</h2>
+
+
+<p><br>
+<font color="red">Warning: this assignment has not been battle-tested. It is likely that there are more ambiguities
+and bugs. Please bring those to our attention and we will do our best to clarify and fix.</font>
+
+</p><p><br>
+
+Seam-carving is a content-aware image resizing technique where the image is reduced in size by one 
+pixel of height (or width) at a time. 
+A <em>vertical seam</em> in an image is a path of pixels connected from the top to the bottom
+with one pixel in each row.
+(A <em>horizontal seam</em> is a path of pixels connected from the left to the right
+with one pixel in each column.)
+Below left is the original 505-by-287 pixel image; below right is the result after removing
+150 vertical seams, resulting in a 30% narrower image.
+Unlike standard content-agnostic resizing techniques (e.g. cropping and scaling), the most 
+interesting features (aspect ratio, set of objects present, etc.) of the image are preserved.
+
+</p><p>
+As you'll soon see, the underlying algorithm is quite simple and elegant.
+Despite this fact, this technique was not discovered until 2007 by Shai Avidan and Ariel Shamir.
+It is now a feature in Adobe Photoshop (thanks to a Princeton graduate student), as well
+as other popular computer graphics applications.
+
+</p><p>
+</p><center>
+<img src="./specification-files/HJoceanSmall.png" alt="Dr. Hug in the ocean">
+
+<img src="./specification-files/HJoceanSmallShrunk.png" alt="Dr. Hug in the ocean">
+</center>
+
+
+<p> In this assignment, you will create a data type that resizes a <em>W</em>-by-<em>H</em> image using 
+the seam-carving technique. 
+
+</p><p>
+Finding and removing a seam involves three parts and a tiny bit of notation:
+
+</p><ol start="0">
+
+<li><em>Notation.</em>
+In image processing, pixel (<em>x</em>, <em>y</em>) refers to the pixel in
+column <em>x</em> and row <em>y</em>, with
+pixel (0, 0) at the upper left corner and pixel
+(<em>W</em> − 1, <em>H</em> − 1) at the bottom right corner.
+This is consistent with the
+<a href="http://introcs.cs.princeton.edu/java/stdlib/Picture.java.html">Picture</a>
+data type in <tt>stdlib.jar</tt>.
+<em>Warning</em>: this is the opposite of the standard mathematical notation used in linear algebra
+where (<em>i</em>, <em>j</em>) refers to row <em>i</em> and column <em>j</em> and with Cartesian
+coordinates where (0, 0) is at the lower left corner.
+
+<p>
+</p><center>
+   <table class="fixedWidthTable">
+  <caption><em>a 3-by-4 image</em></caption>
+
+    <tbody><tr>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (0, 0) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (1, 0) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (2, 0) &nbsp;</td>
+    </tr>    
+    <tr>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (0, 1) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (1, 1) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (2, 1) &nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (0, 2) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (1, 2) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (2, 2) &nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (0, 3) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (1, 3) &nbsp;</td>
+      <td align="center" bgcolor="#eeeeee">&nbsp; (2, 3) &nbsp;</td>
+    </tr>
+</tbody></table>
+</center>
+
+<p>
+We also assume that the color of a pixel is represented in RGB space, using three
+integers between 0 and 255.
+This is consistent with the
+<a href="http://docs.oracle.com/javase/6/docs/api/java/awt/Color.html">java.awt.Color</a> data type.
+
+
+</p><p></p></li><li><em>Energy calculation.</em>
+The first step is to calculate the <em>energy</em> of each pixel, which is a measure of the 
+importance of each pixel—the higher the energy, the less likely that the pixel will be included 
+as part of a seam (as we'll see in the next step).
+
+<!--See <a href="http://dl.acm.org/citation.cfm?id=1276390">the original Seam Carving paper</a> for a discussion of different energy functions.-->
+
+In this assignment, you will implement the <em>dual gradient</em> energy function, which is described below.
+Here is the dual gradient of the surfing image above:
+
+   <p></p><center><img src="./specification-files/HJoceanSmallEnergy.png" alt="Dr. Hug as energy"></center>
+
+<p>The energy is high (white) for pixels in the image where there is a rapid color gradient
+(such as the boundary between the sea and sky and the boundary between the surfing Josh Hug 
+on the left and the ocean behind him). The seam-carving technique avoids removing such high-energy pixels.
+
+</p></li>
+
+<p></p><li><em>Seam identification.</em>
+The next step is to find a vertical seam of minimum total energy.
+This is similar to the classic shortest path problem
+in an edge-weighted digraph except for the following:
+<ul>
+<p></p><li> The weights are on the vertices instead of the edges.
+<p></p></li><li> We want to find the shortest path from any of <em>W</em> pixels in the top row
+to any of the <em>W</em> pixels in the bottom row.
+<p></p></li><li> The digraph is acyclic, where there is a downward edge from pixel
+(<em>x</em>,           <em>y</em>) to pixels 
+(<em>x</em> − 1, <em>y</em> + 1),
+(<em>x</em>,           <em>y</em> + 1), and
+(<em>x</em> + 1,       <em>y</em> + 1),
+assuming that the coordinates are in the prescribed range.
+
+
+</li></ul>
+
+<p></p><center><img src="./specification-files/HJoceanSmallVerticalSeam.png" alt="Vertical Seam"></center></li>
+
+<p></p><li><em>Seam removal.</em>
+The final step is remove from the image all of the pixels along the seam.
+
+</li></ol>
+
+
+
+<p>
+<b>The SeamCarver API.</b> Your task is to implement the following mutable data type:
+
+</p><blockquote>
+<pre>public class SeamCarver {
+   public SeamCarver(Picture picture)
+   public Picture picture()                       // current picture
+   public     int width()                         // width of current picture
+   public     int height()                        // height of current picture
+   public  double energy(int x, int y)            // energy of pixel at column x and row y
+   public   int[] findHorizontalSeam()            // sequence of indices for horizontal seam
+   public   int[] findVerticalSeam()              // sequence of indices for vertical seam
+   public    void removeHorizontalSeam(int[] a)   // remove horizontal seam from picture
+   public    void removeVerticalSeam(int[] a)     // remove vertical seam from picture
+}
+</pre>
+</blockquote>
+
+<ul>
+
+<li><b>Computing the energy of a pixel.</b> We will use the <em>dual gradient energy function</em>: The
+energy of pixel (<em>x</em>, <em>y</em>) is
+ Δ<sub><em>x</em></sub><sup>2</sup>(<em>x</em>, <em>y</em>) + Δ<sub><em>y</em></sub><sup>2</sup>(<em>x</em>, <em>y</em>),
+where the square of the <em>x-</em>gradient
+Δ<sub><em>x</em></sub><sup>2</sup>(<em>x</em>, <em>y</em>) = <em>R<sub>x</sub></em>(<em>x</em>, <em>y</em>)<sup>2</sup> 
+   + <em>G<sub><em>x</em></sub></em>(<em>x</em>, <em>y</em>)<sup>2</sup>
+   + <em>B<sub><em>x</em></sub></em>(<em>x</em>, <em>y</em>)<sup>2</sup>,
+and where the central differences
+<em>R<sub>x</sub></em>(<em>x</em>, <em>y</em>),
+<em>G<sub>x</sub></em>(<em>x</em>, <em>y</em>), and
+<em>B<sub>x</sub></em>(<em>x</em>, <em>y</em>)
+are the absolute value in differences of red, green, and blue components between
+pixel (<em>x</em> + 1, <em>y</em>) and pixel (<em>x</em> − 1, <em>y</em>). 
+The square of the <em>y</em>-gradient Δ<sub><em>y</em></sub><sup>2</sup>(<em>x</em>, <em>y</em>)
+is defined in an analogous manner.
+We define the energy of pixels at the border of the image to be
+255<sup>2</sup> + 255<sup>2</sup> + 255<sup>2</sup> = 195075.
+
+<p>
+As an example, consider the 3-by-4 image with RGB values (each component is an integer between 0 and 255)
+as shown in the table below.
+   </p><center>
+   <table class="fixedWidthTable">
+    <tbody><tr>
+      <td align="center" bgcolor="#ff6533">&nbsp; (255, 101, 51) &nbsp;</td>
+      <td align="center" bgcolor="#ff6599">&nbsp; (255, 101, 153) &nbsp;</td>
+      <td align="center" bgcolor="#ff65ff">&nbsp; (255, 101, 255) &nbsp;</td>
+    </tr>    
+    <tr>
+      <td align="center" bgcolor="#ff9933">&nbsp; (255,153,51) &nbsp;</td>
+      <td align="center" bgcolor="#ff9999">&nbsp; (255,153,153) &nbsp;</td>
+      <td align="center" bgcolor="#ff99ff">&nbsp; (255,153,255) &nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" bgcolor="#ffcb33">&nbsp; (255,203,51) &nbsp;</td>
+      <td align="center" bgcolor="#ffcc99">&nbsp; (255,204,153) &nbsp;</td>
+      <td align="center" bgcolor="#ffcdff">&nbsp; (255,205,255) &nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" bgcolor="#ffff33">&nbsp; (255,255,51) &nbsp;</td>
+      <td align="center" bgcolor="#ffff99">&nbsp; (255,255,153) &nbsp;</td>
+      <td align="center" bgcolor="#ffffff">&nbsp; (255,255,255) &nbsp;</td>
+    </tr>
+</tbody></table>
+</center>
+
+<p>
+</p><p>
+
+
+The ten border pixels have energy 195075. Only the pixels (1, 1) and (1, 2) are  nontrivial.
+We calculate the energy of pixel (1, 2) in detail:
+
+</p><p>
+<em>R<sub>x</sub></em>(1, 2) = 255 − 255 = 0, <br>
+<em>G<sub>x</sub></em>(1, 2) = 205 − 203 = 2, <br>
+<em>B<sub>x</sub></em>(1, 2) = 255 − 51 = 204, <br>
+yielding Δ<sub><em>x</em></sub><sup>2</sup>(1, 2) = 2<sup>2</sup> + 204<sup>2</sup> = 41620. 
+
+</p><p>
+<em>R<sub>y</sub></em>(1, 2) = 255 − 255 = 0, <br>
+<em>G<sub>y</sub></em>(1, 2) = 255 − 153 = 102, <br>
+<em>B<sub>y</sub></em>(1, 2) = 153 − 153 = 0, <br>
+yielding Δ<sub><em>y</em></sub><sup>2</sup>(1, 2) = 102<sup>2</sup> = 10404. 
+
+</p><p> Thus, the energy of pixel (1, 2) is 41620 + 10404 = 52024.
+Similarly, the energy of pixel (1, 1) is 204<sup>2</sup> + 103<sup>2</sup> = 52225.
+
+   </p><center>
+   <table class="fixedWidthTable">
+    <tbody><tr>
+      <td align="center" bgcolor="#ff6533">&nbsp;195075.0&nbsp;</td>
+      <td align="center" bgcolor="#ff6599">&nbsp;195075.0&nbsp;</td>
+      <td align="center" bgcolor="#ff65ff">&nbsp;195075.0&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" bgcolor="#ff9933">&nbsp;195075.0&nbsp;</td>
+      <td align="center" bgcolor="#ff9999">&nbsp;52225.0&nbsp;</td>
+      <td align="center" bgcolor="#ff99ff">&nbsp;195075.0&nbsp;</td>
+    </tr>    
+    <tr>
+      <td align="center" bgcolor="#ffcc33">&nbsp;195075.0&nbsp;</td>
+      <td align="center" bgcolor="#ffcc99">&nbsp;52024.0&nbsp;</td>
+      <td align="center" bgcolor="#ffccff">&nbsp;195075.0&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" bgcolor="#ffff33">&nbsp;195075.0&nbsp;</td>
+      <td align="center" bgcolor="#ffff99">&nbsp;195075.0&nbsp;</td>
+      <td align="center" bgcolor="#ffffff">&nbsp;195075.0&nbsp;</td>
+    </tr>
+</tbody></table>
+</center>
+
+
+
+<br>
+</li><li><b>Finding a vertical seam.</b>
+The <tt>findVerticalSeam()</tt> method should return an array of length <em>H</em> such that entry
+<em>x</em> is the column number of the pixel to be removed from row <em>x</em> of the image.
+For example, consider the 6-by-5 image below (supplied as 6x5.png).
+
+   <center>
+   <p><table class="fixedWidthTable">
+<tbody><tr>
+<td align="center" bgcolor="#61526b">&nbsp;( 97, 82,107)&nbsp;</td>
+<td align="center" bgcolor="#dcac8d">&nbsp;(220,172,141)&nbsp;</td>
+<td align="center" bgcolor="#f347cd">&nbsp;(243, 71,205)&nbsp;</td>
+<td align="center" bgcolor="#81adde">&nbsp;(129,173,222)&nbsp;</td>
+<td align="center" bgcolor="#e128d1">&nbsp;(225, 40,209)&nbsp;</td>
+<td align="center" bgcolor="#426ddb">&nbsp;( 66,109,219)&nbsp;</td>
+</tr>
+<tr>
+<td align="center" bgcolor="#b54e44">&nbsp;(181, 78, 68)&nbsp;</td>
+<td align="center" bgcolor="# f1cd8">&nbsp;( 15, 28,216)&nbsp;</td>
+<td align="center" bgcolor="#f59696">&nbsp;(245,150,150)&nbsp;</td>
+<td align="center" bgcolor="#b164a7">&nbsp;(177,100,167)&nbsp;</td>
+<td align="center" bgcolor="#cdcdb1">&nbsp;(205,205,177)&nbsp;</td>
+<td align="center" bgcolor="#933a63">&nbsp;(147, 58, 99)&nbsp;</td>
+</tr>
+<tr>
+<td align="center" bgcolor="#c4e015">&nbsp;(196,224, 21)&nbsp;</td>
+<td align="center" bgcolor="#a6d9be">&nbsp;(166,217,190)&nbsp;</td>
+<td align="center" bgcolor="#8078a2">&nbsp;(128,120,162)&nbsp;</td>
+<td align="center" bgcolor="#683b6e">&nbsp;(104, 59,110)&nbsp;</td>
+<td align="center" bgcolor="#319489">&nbsp;( 49,148,137)&nbsp;</td>
+<td align="center" bgcolor="#c06559">&nbsp;(192,101, 89)&nbsp;</td>
+</tr>
+<tr>
+<td align="center" bgcolor="#538f67">&nbsp;( 83,143,103)&nbsp;</td>
+<td align="center" bgcolor="#6e4ff7">&nbsp;(110, 79,247)&nbsp;</td>
+<td align="center" bgcolor="#6a47ae">&nbsp;(106, 71,174)&nbsp;</td>
+<td align="center" bgcolor="#5cf0cd">&nbsp;( 92,240,205)&nbsp;</td>
+<td align="center" bgcolor="#813892">&nbsp;(129, 56,146)&nbsp;</td>
+<td align="center" bgcolor="#796f93">&nbsp;(121,111,147)&nbsp;</td>
+</tr>
+<tr>
+<td align="center" bgcolor="#529d89">&nbsp;( 82,157,137)&nbsp;</td>
+<td align="center" bgcolor="#5c6e81">&nbsp;( 92,110,129)&nbsp;</td>
+<td align="center" bgcolor="#b76b50">&nbsp;(183,107, 80)&nbsp;</td>
+<td align="center" bgcolor="#5918d9">&nbsp;( 89, 24,217)&nbsp;</td>
+<td align="center" bgcolor="#cf4520">&nbsp;(207, 69, 32)&nbsp;</td>
+<td align="center" bgcolor="#9c701f">&nbsp;(156,112, 31)&nbsp;</td>
+</tr>
+
+
+
+
+
+</tbody></table>
+</p></center>
+The corresponding pixel energies are shown below, with a minimum energy vertical seam highlighted in red.
+In this case, the method <tt>findVerticalSeam()</tt> should return the array  { 2, 3, 3, 3, 2}.
+
+<p>
+</p><center>
+<table class="fixedWidthTable">
+<tbody><tr>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff" style="color:#FF0000">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+</tr>
+<tr>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="1e1e1e" style="color:#999999">23346.0</td>
+<td align="center" bgcolor="424242" style="color:#999999">51304.0</td>
+<td align="center" bgcolor="292929" style="color:#FF0000">31519.0</td>
+<td align="center" bgcolor="474747" style="color:#999999">55112.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+</tr>
+<tr>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="3e3e3e" style="color:#999999">47908.0</td>
+<td align="center" bgcolor="4f4f4f" style="color:#999999">61346.0</td>
+<td align="center" bgcolor="2e2e2e" style="color:#FF0000">35919.0</td>
+<td align="center" bgcolor="323232" style="color:#999999">38887.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+</tr>
+<tr>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="282828" style="color:#999999">31400.0</td>
+<td align="center" bgcolor="313131" style="color:#999999">37927.0</td>
+<td align="center" bgcolor="121212" style="color:#FF0000">14437.0</td>
+<td align="center" bgcolor="525252" style="color:#999999">63076.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+</tr>
+<tr>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff" style="color:#FF0000">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+<td align="center" bgcolor="ffffff">195705.0</td>
+</tr>
+
+
+</tbody></table>
+</center>
+<p>
+When there are multiple vertical seams with minimal total energy, your method can return
+any such seam.
+
+
+</p></li><li><p><b>Finding a horizontal seam.</b>
+The behavior of <tt>findHorizontalSeam()</tt> as analogous to that of <tt>findVerticalSeam()</tt> 
+except that it should return an array of <em>W</em> such that entry <em>y</em> is the row number of 
+the pixel to be removed from column <em>y</em> of the image.
+
+</p></li><li>
+<p><b>Performance requirements.</b>
+The <tt>width()</tt>, <tt>height()</tt>, and <tt>energy()</tt> methods should take constant time in the worst case.
+All other methods should run in time at most proportional to <em>W H</em> in the worst case.
+For faster performance, do not construct an explicit <tt>EdgeWeightedDigraph</tt> object.
+
+<!-- REDUNDANT: time and use no more than WH memory. -->
+
+</p></li><li><p><b>Exceptions.</b> Your code should throw an exception when called with invalid arguments.
+</p><ul>
+
+<p></p><li>
+By convention, the indices <em>x</em> and <em>y</em> are integers between 0 and <em>W</em> − 1 and between
+0 and <em>H</em> − 1 respectively.
+Throw a <tt>java.lang.IndexOutOfBoundsException</tt> if either <em>x</em> or <em>y</em>
+is outside its prescribed range.
+
+<p></p></li><li>
+Throw a <tt>java.lang.IllegalArgumentException</tt> if <tt>removeVerticalSeam()</tt> or
+<tt>removeHorizontalSeam()</tt> is called with an array of the wrong length
+or if the array is not a valid seam (i.e., two consecutive entries differ by more than 1).
+
+<p></p></li><li>
+Throw a <tt>java.lang.IllegalArgumentException</tt> if either <tt>removeVerticalSeam()</tt> or
+<tt>removeHorizontalSeam()</tt> is called when the width or height is 0.
+
+</li></ul>
+</li></ul>
+
+<p><b>Analysis of running time (optional and not graded).</b>&nbsp;
+</p><ul>
+
+<p></p><li>Give the worst-case running time to remove <em>R</em> rows and <em>C</em> columns from a <em>W</em>-by-<em>H</em>
+image as a function of <em>R</em>, <em>C</em>, <em>W</em>, and <em>H</em>.
+
+<p></p></li><li>
+Estimate empirically the running time (in seconds) to remove <em>R</em> rows and <em>C</em> columns 
+from a <em>W</em>-by-<em>H</em> image as a function of <em>R</em>, <em>C</em>, <em>W</em>, and 
+<em>H</em>. Use tilde notation to simplify your answer.
+
+<!--
+<p><li>
+Advanced: Do you observe any caching effects (e.g. does the time to remove a horizontal seam
+differ significantly from the time to remove a vertical seam
+ row removals and column removals differ 
+substantially in run time)? Explain any caching effects (or the lack thereof).
+-->
+
+</li></ul>
+
+<p><b>Submission.</b>&nbsp;
+Submit <tt>SeamCarver.java</tt>, and any other files needed by your program (excluding those
+in <tt>stdlib.jar</tt> and <tt>algs4.jar</tt>).
+
+</p><p>
+</p><address><small>This assignment was developed by Josh Hug, Maia Ginsburg, and Kevin Wayne.
+</small></address>
+
+
+
+</body></html>
