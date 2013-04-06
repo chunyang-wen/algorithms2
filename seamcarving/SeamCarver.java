@@ -4,8 +4,8 @@
  * @author William Schwartz
  */
 public class SeamCarver {
+	private static final double BORDER_ENERGY = 3 * (255 * 255);
 	private Picture picture;
-
 	public SeamCarver(Picture picture) { this.picture = picture; }
 
 	// current picture
@@ -17,8 +17,21 @@ public class SeamCarver {
 	// height of current picture
 	public int height() { return picture.height(); }
 
+	// Find the square color gradient in one dimension
+	private int gradient(java.awt.Color a, java.awt.Color b) {
+		int red   = a.getRed()   - b.getRed();
+		int green = a.getGreen() - b.getGreen();
+		int blue  = a.getBlue()  - b.getBlue();
+		return red*red + green*green + blue*blue;
+	}
+
 	// energy of pixel at column x and row y
-	public double energy(int x, int y);
+	public double energy(int x, int y) {
+		if (x == 0 || y == 0 || x == width() - 1 || y == height() - 1)
+			return BORDER_ENERGY;
+		return gradient(picture.get(x - 1, y), picture.get(x + 1, y)) +
+		       gradient(picture.get(x, y - 1), picture.get(x, y + 1));
+	}
 
 	// sequence of indices for horizontal seam
 	public int[] findHorizontalSeam();
