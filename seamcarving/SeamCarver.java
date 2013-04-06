@@ -69,7 +69,7 @@ public class SeamCarver {
 			edgeTo[v] = -1;
 			weights[v] = energy(col(v), row(v));
 		}
-		for (int v : toporder())
+		for (int v : toporder(size))
 			for (int w : adj(v))
 				relax(v, w, weights, distTo, edgeTo);
 		// Find min weight bottom node
@@ -98,10 +98,10 @@ public class SeamCarver {
 	}
 
 	// Return the node IDs in topological order
-	private Iterable<Integer> toporder() {
+	private Iterable<Integer> toporder(int size) {
 		Stack<Integer> toporder = new Stack<Integer>();
-		boolean[] marked = new boolean[width() * height()];
-		for (int id = 0; id < marked.length; id++)
+		boolean[] marked = new boolean[size];
+		for (int id = 0; id < size; id++)
 			if (!marked[id])
 				dfs(id, marked, toporder);
 		return toporder;
