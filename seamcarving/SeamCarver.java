@@ -39,7 +39,20 @@ public class SeamCarver {
 	}
 
 	// sequence of indices for horizontal seam
-	public int[] findHorizontalSeam();
+	public int[] findHorizontalSeam() {
+		transpose();
+		int[] seam = findVerticalSeam();
+		transpose();
+		return seam;
+	}
+
+	private void transpose() {
+		Picture p = new Picture(width(), height());
+		for (int col = 0; col < width(); col++)
+			for (int row = 0; row < height(); row++)
+				p.set(row, col, pic.get(col, row));
+		pic = p;
+	}
 
 	// sequence of indices for vertical seam
 	public int[] findVerticalSeam() {
