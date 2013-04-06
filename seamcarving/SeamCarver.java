@@ -44,6 +44,24 @@ public class SeamCarver {
 	// sequence of indices for vertical seam
 	public int[] findVerticalSeam();
 
+	// Mapping between node ID numbers and (col, row) notation. No bounds
+	// checking is performed so use with caution.
+	private int node(int col, int row) { return row * width() + col; }
+	private int col(int node) { return node % width(); }
+	private int row(int node) { return node / width(); }
+	// Edges point downward to the three neighboring points the row below.
+	private Iterable<Integer> adj(int from) {
+		Queue<Integer> neighbors = new Queue<Integer>();
+		if (from >= width() * height())
+			return neighbors;
+		if (col(from) != 0)
+			neighbors.enqueue(from + width() - 1);
+		neighbors.enqueue(from + width());
+		if (col(from) != width())
+			neighbors.enqueue(from + width() + 1);
+		return neighbors;
+	}
+
 	// remove horizontal seam from picture
 	public void removeHorizontalSeam(int[] a) {
 		if (height() == 0) {
