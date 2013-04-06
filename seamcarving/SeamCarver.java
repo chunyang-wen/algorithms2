@@ -6,6 +6,7 @@
 public class SeamCarver {
 	private static final double BORDER_ENERGY = 3 * (255 * 255);
 	private Picture pic;
+
 	public SeamCarver(Picture picture) { this.pic = picture; }
 
 	// Copy of current picture
