@@ -4,16 +4,18 @@
  * @author William Schwartz
  */
 public class SeamCarver {
-	public SeamCarver(Picture picture);
+	private Picture picture;
+
+	public SeamCarver(Picture picture) { this.picture = picture; }
 
 	// current picture
-	public Picture picture();
+	public Picture picture() { return picture; }
 
 	// width of current picture
-	public int width();
+	public int width() { return picture.width(); }
 
 	// height of current picture
-	public int height();
+	public int height() { return picture.height(); }
 
 	// energy of pixel at column x and row y
 	public double energy(int x, int y);
