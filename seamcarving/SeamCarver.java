@@ -7,10 +7,10 @@ public class SeamCarver {
 	private static final double BORDER_ENERGY = 3 * (255 * 255);
 	private Picture pic;
 
-	public SeamCarver(Picture picture) { this.pic = picture; }
+	public SeamCarver(Picture picture) { this.pic = new Picture(picture); }
 
 	// Copy of current picture
-	public Picture picture() { return pic; }
+	public Picture picture() { return new Picture(pic); }
 
 	// width of current picture
 	public int width() { return pic.width(); }
