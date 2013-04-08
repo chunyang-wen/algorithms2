@@ -191,4 +191,71 @@ public class SeamCarver {
 		}
 		pic = p;
 	}
+
+	private void printEWD() {
+		System.out.println("***** EdgeWeightedDigraph Topological Order ****");
+		EdgeWeightedDigraph g = digraph();
+		int count = 0;
+		int[][] m = new int[width()][height()];
+		for (int node : new Topological(g).order())
+			m[col(node)][row(node)] = count++;
+		for (int row = 0; row < height(); row++) {
+			for (int col = 0; col < width(); col++)
+				System.out.printf(" %3d ", m[col][row]);
+			System.out.println();
+		}
+		System.out.println();
+	}
+
+	// Construct the EdgeWeightedDigraph the instructors told us not to
+	// construct.
+	private EdgeWeightedDigraph digraph() {
+		EdgeWeightedDigraph g = new EdgeWeightedDigraph(width() * height());
+		for (int v = 0; v < width() * height(); v++)
+			for (int w : adj(v))
+				g.addEdge(new DirectedEdge(v, w, energy(col(w), row(w))));
+		return g;
+	}
+
+	private void printTopo() {
+		int count = 0;
+		int[][] m = new int[width()][height()];
+		for (int node : toporder(width() * height()))
+			m[col(node)][row(node)] = count++;
+		System.out.println("*************** TOPOLOGICAL ORDER *************");
+		for (int row = 0; row < height(); row++) {
+			for (int col = 0; col < width(); col++)
+				System.out.printf(" %3d ", m[col][row]);
+			System.out.println();
+		}
+		System.out.println();
+	}
+
+	private void printNode2Point() {
+		for (int node = node(0, 0); node < width() * height(); node++) {
+			System.out.printf("(%d, %d) ", col(node), row(node));
+			if (col(node) == width() - 1)
+				System.out.println();
+		}
+		System.out.println();
+	}
+
+	private void printEdges() {
+		System.out.println("*************** EDGES ****************");
+		System.out.printf("   |      %d            ", 0);
+		for (int col = 1; col < width() - 1; col++)
+			System.out.printf("|        %d              ", col);
+		System.out.printf("|       %d           |\n", width() - 1);
+		for (int node = node(0, 0); node < width() * height(); node++) {
+			if (col(node) == 0)
+				System.out.printf("%3d| ", row(node));
+			System.out.printf("%3d -> {", node);
+			for (int child : adj(node))
+				System.out.printf("%3d,", child);
+			System.out.print("} | ");
+			if (col(node) == width() - 1)
+				System.out.println();
+		}
+		System.out.println();
+	}
 }
