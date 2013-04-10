@@ -73,20 +73,30 @@ public class SeamCarver {
 			for (int w : adj(v))
 				relax(v, w, weights, distTo, edgeTo);
 		// Find min weight bottom node
-		double min = Double.POSITIVE_INFINITY;
-		int argmin = node(0, height() - 1);
-		for (int v = node(0, height() - 1); v < size; v++) {
-			if (distTo[v] < min) {
-				min = distTo[v];
-				argmin = v;
-			}
-		}
+		int argmin = argmin(distTo, node(0, height() - 1), size);
 		// get path to min weight bottom node
 		int[] seam = new int[height()];
 		seam[row(argmin)] = col(argmin);
 		for (int prev = edgeTo[argmin]; prev >= 0; prev = edgeTo[prev])
 			seam[row(prev)] = col(prev);
 		return seam;
+	}
+
+	// Return the index of the least element of an array of doubles in a range.
+	private int argmin(double[] a, int start, int stop) {
+		if (stop <= start || start < 0 || a.length == 0)
+			throw new IllegalArgumentException();
+		double min = Double.POSITIVE_INFINITY;
+		int argmin = start;
+		if (stop > a.length)
+			stop = a.length;
+		for (int i = start; i < stop; i++) {
+			if (a[i] < min) {
+				min = a[i];
+				argmin = i;
+			}
+		}
+		return argmin;
 	}
 
 	private void relax(int from, int to, double[] weights, double[] distTo, int[] edgeTo) {
