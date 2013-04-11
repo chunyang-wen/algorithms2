@@ -202,6 +202,20 @@ public class SeamCarver {
 		pic = p;
 	}
 
+	// Make this private to avoid changing the API defined in the
+	// instructions. If you need to test the class, just uncomment the next
+	// line.
+	// public static void main(String[] args) { main(args); }
+	private static void main(String[] args) {
+		Picture p = new Picture(args[0]);
+		System.out.printf("image is %d columns by %d rows\n", p.width(), p.height());
+		SeamCarver s = new SeamCarver(p);
+		s.printNode2Point();
+		s.printEdges();
+		s.printTopo();
+		s.printEWD();
+	}
+
 	private void printEWD() {
 		System.out.println("***** EdgeWeightedDigraph Topological Order ****");
 		EdgeWeightedDigraph g = digraph();
