@@ -68,7 +68,7 @@ public class SeamCarver {
 			edgeTo[v] = -1;
 			weights[v] = energy(col(v), row(v));
 		}
-		for (int v : toporder(size))
+		for (int v : toporder())
 			for (int w : adj(v))
 				relax(v, w, weights, distTo, edgeTo);
 		int endOfSeam = argmin(distTo, node(0, height() - 1), size);
@@ -109,7 +109,7 @@ public class SeamCarver {
 
 	// Return the node IDs in topological order. Take advantage of predictable
 	// structure of this graph to avoid doing DFS.
-	private Iterable<Integer> toporder(int size) {
+	private Iterable<Integer> toporder() {
 		Queue<Integer> toporder = new Queue<Integer>();
 		int row, col;
 		for (int startCol = width() - 1; startCol > height(); startCol--) {
@@ -239,7 +239,7 @@ public class SeamCarver {
 	private void printTopo() {
 		int count = 0;
 		int[][] m = new int[width()][height()];
-		for (int node : toporder(width() * height()))
+		for (int node : toporder())
 			m[col(node)][row(node)] = count++;
 		System.out.println("*************** TOPOLOGICAL ORDER *************");
 		for (int row = 0; row < height(); row++) {
