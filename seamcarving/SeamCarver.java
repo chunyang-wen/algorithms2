@@ -115,6 +115,7 @@ public class SeamCarver {
 		for (int startCol = width() - 1; startCol > -height(); startCol--) {
 			if (startCol >= 0) { row = 0;         col = startCol; }
 			else               { row = -startCol; col = 0;        }
+			for ( ; row < height() && col < width(); row++)
 				toporder.enqueue(node(col++, row));
 		}
 		return toporder;
