@@ -205,9 +205,8 @@ public class SeamCarver {
 	}
 
 	// Make this private to avoid changing the API defined in the
-	// instructions. If you need to test the class, just uncomment the next
-	// line.
-	// public static void main(String[] args) { main(args); }
+	// instructions. If you need to test the class, just change private to
+	// public.
 	private static void main(String[] args) {
 		Picture p = new Picture(args[0]);
 		System.out.printf("image is %d columns by %d rows\n", p.width(), p.height());
