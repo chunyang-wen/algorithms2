@@ -72,12 +72,14 @@ public class SeamCarver {
 		for (int v : toporder(size))
 			for (int w : adj(v))
 				relax(v, w, weights, distTo, edgeTo);
-		// Find min weight bottom node
-		int argmin = argmin(distTo, node(0, height() - 1), size);
-		// get path to min weight bottom node
+		int endOfSeam = argmin(distTo, node(0, height() - 1), size);
+		return path(endOfSeam, edgeTo);
+	}
+
+	private int[] path(int end, int[] edgeTo) {
 		int[] seam = new int[height()];
-		seam[row(argmin)] = col(argmin);
-		for (int prev = edgeTo[argmin]; prev >= 0; prev = edgeTo[prev])
+		seam[row(end)] = col(end);
+		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
 			seam[row(prev)] = col(prev);
 		return seam;
 	}
