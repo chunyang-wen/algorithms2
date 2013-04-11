@@ -112,10 +112,9 @@ public class SeamCarver {
 	private Iterable<Integer> toporder() {
 		Queue<Integer> toporder = new Queue<Integer>();
 		int row, col;
-		for (int startCol = width() - 1; startCol > height(); startCol--) {
-			if (startCol >= 0) { row = 0;        col = startCol; }
-			else               { row = startCol; col = 0;        }
-			for ( ; row < height(); row++)
+		for (int startCol = width() - 1; startCol > -height(); startCol--) {
+			if (startCol >= 0) { row = 0;         col = startCol; }
+			else               { row = -startCol; col = 0;        }
 				toporder.enqueue(node(col++, row));
 		}
 		return toporder;
