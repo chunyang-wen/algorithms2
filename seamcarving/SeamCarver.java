@@ -57,7 +57,6 @@ public class SeamCarver {
 	// sequence of indices for vertical seam
 	public int[] findVerticalSeam() {
 		int size = width() * height();
-		assert size == node(width() - 1, height() - 1) + 1;
 		double[] weights = new double[size];
 		double[] distTo = new double[size];
 		int[] edgeTo = new int[size];
