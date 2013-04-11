@@ -107,22 +107,21 @@ public class SeamCarver {
 		}
 	}
 
-	// Return the node IDs in topological order
+	// Return the node IDs in topological order. Take advantage of predictable
+	// structure of this graph to avoid doing DFS.
 	private Iterable<Integer> toporder(int size) {
-		Stack<Integer> toporder = new Stack<Integer>();
-		boolean[] marked = new boolean[size];
-		for (int id = 0; id < size; id++)
-			if (!marked[id])
-				dfs(id, marked, toporder);
+		Queue<Integer> toporder = new Queue<Integer>();
+		for (int startCol = width() - 1; startCol > 0; startCol--) {
+			int col = startCol;
+			for (int row = 0; row < height() && col < width(); row++)
+				toporder.enqueue(node(col++, row));
+		}
+		for (int startRow = 0; startRow < height(); startRow++) {
+			int row = startRow;
+			for (int col = 0; col < width() && row < height(); col++)
+				toporder.enqueue(node(col, row++));
+		}
 		return toporder;
-	}
-
-	private void dfs(int v, boolean[] marked, Stack<Integer> toporder) {
-		marked[v] = true;
-		for (int w : adj(v))
-			if (!marked[w])
-				dfs(w, marked, toporder);
-		toporder.push(v);
 	}
 
 	// Mapping between node ID numbers and (col, row) notation. No bounds
