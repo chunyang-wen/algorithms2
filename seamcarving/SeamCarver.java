@@ -111,18 +111,12 @@ public class SeamCarver {
 	// structure of this graph to avoid doing DFS.
 	private Iterable<Integer> toporder(int size) {
 		Queue<Integer> toporder = new Queue<Integer>();
-		int interval = 1;
-		for (int v = node(width() - 1, 0); v < width() * height(); ) {
-				toporder.enqueue(v);
-				if (row(v) == height() - 1 || col(v) == width() - 1) {
-					v -= interval;
-					if (col(v) > 0)
-						interval += width() + 1;
-					else
-						interval -= width() + 1;
-				}
-				else
-					v += width() + 1;
+		int row, col;
+		for (int startCol = width() - 1; startCol > height(); startCol--) {
+			if (startCol >= 0) { row = 0;        col = startCol; }
+			else               { row = startCol; col = 0;        }
+			for ( ; row < height(); row++)
+				toporder.enqueue(node(col++, row));
 		}
 		return toporder;
 	}
