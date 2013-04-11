@@ -62,7 +62,7 @@ public class SeamCarver {
 		double[] distTo = new double[size];
 		int[] edgeTo = new int[size];
 		for (int v = node(0, 0); v < size; v++) {
-			if (row(v) == 1)
+			if (row(v) == 0)
 				distTo[v] = 0.0;
 			else
 				distTo[v] = Double.POSITIVE_INFINITY;
