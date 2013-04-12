@@ -49,18 +49,23 @@ public class SeamCarver {
 
 	// sequence of indices for horizontal seam
 	public int[] findHorizontalSeam() {
-		transpose();
-		int[] seam = findVerticalSeam();
-		transpose();
-		return seam;
-	}
-
-	private void transpose() {
-		Picture p = new Picture(height(), width());
-		for (int col = 0; col < width(); col++)
-			for (int row = 0; row < height(); row++)
-				p.set(row, col, pic.get(col, row));
-		pic = p;
+		int row, col, width = width(), height = height();
+		init(node(0, 0), node(0, height - 1), width);
+		for (int startRow = height - 1; startRow > -width; startRow--) {
+			if (startRow >= 0) { col = 0;         row = startRow; }
+			else               { col = -startRow; row = 0;        }
+			for ( ; col < width - 1 && row < height; col++) {
+				int v = node(col, row);
+				if (row > 0)
+					relax(v, node(col + 1, row - 1));
+				relax(v, node(col + 1, row));
+				if (row < height - 1)
+					relax(v, node(col + 1, row + 1));
+				row++;
+			}
+		}
+		int endOfSeam = argmin(distTo, node(width - 1, 0), width * height, width, true);
+		return path(endOfSeam, edgeTo);
 	}
 
 	// Initialize the search vectors. start, stop, and skip give the range of
@@ -94,17 +99,25 @@ public class SeamCarver {
 				relax(v, node(col, row + 1));
 				if (col < width - 1)
 					relax(v, node(col + 1, row + 1));
+				col++;
 			}
 		}
 		int endOfSeam = argmin(distTo, node(0, height - 1), width * height, 1);
-		return path(endOfSeam, edgeTo);
+		return path(endOfSeam, edgeTo, false);
 	}
 
-	private int[] path(int end, int[] edgeTo) {
+	private int[] path(int end, int[] edgeTo, boolean transpose) {
 		int[] seam = new int[height()];
-		seam[row(end)] = col(end);
-		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
-			seam[row(prev)] = col(prev);
+		if (transpose)
+			seam[col(end)] = row(end);
+		else
+			seam[row(end)] = col(end);
+		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev]) {
+			if (transpose)
+				seam[col(prev)] = row(prev);
+			else
+				seam[row(prev)] = col(prev);
+		}
 		return seam;
 	}
 
