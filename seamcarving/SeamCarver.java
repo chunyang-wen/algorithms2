@@ -110,14 +110,14 @@ public class SeamCarver {
 	}
 
 	// Return the index of the least element of an array of doubles in a range.
-	private int argmin(double[] a, int start, int stop) {
+	private int argmin(double[] a, int start, int stop, int skip) {
 		if (stop <= start || start < 0 || a.length == 0)
 			throw new IllegalArgumentException();
 		double min = Double.POSITIVE_INFINITY;
 		int argmin = start;
 		if (stop > a.length)
 			stop = a.length;
-		for (int i = start; i < stop; i++) {
+		for (int i = start; i < stop; i += skip) {
 			if (a[i] < min) {
 				min = a[i];
 				argmin = i;
