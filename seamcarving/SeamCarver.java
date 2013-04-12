@@ -68,9 +68,19 @@ public class SeamCarver {
 			edgeTo[v] = -1;
 			weights[v] = energy(col(v), row(v));
 		}
-		for (int v : toporder())
-			for (int w : adj(v))
-				relax(v, w, weights, distTo, edgeTo);
+		// The first two nested loops in the nesting here iterate through the
+		// cells of the matrix (the nodes of the graph) in topological order.
+		// Skip the last row because it has zero outdegree.
+		int row, col;
+		for (int startCol = width() - 1; startCol > -height(); startCol--) {
+			if (startCol >= 0) { row = 0;         col = startCol; }
+			else               { row = -startCol; col = 0;        }
+			for ( ; row < height() - 1 && col < width(); row++) {
+				int v = node(col, row);
+				for (int w : adj(v))
+					relax(v, w, weights, distTo, edgeTo);
+			}
+		}
 		int endOfSeam = argmin(distTo, node(0, height() - 1), size);
 		return path(endOfSeam, edgeTo);
 	}
@@ -105,20 +115,6 @@ public class SeamCarver {
 			distTo[to] = distTo[from] + weights[to];
 			edgeTo[to] = from;
 		}
-	}
-
-	// Return the node IDs in topological order. Take advantage of predictable
-	// structure of this graph to avoid doing DFS.
-	private Iterable<Integer> toporder() {
-		Queue<Integer> toporder = new Queue<Integer>();
-		int row, col;
-		for (int startCol = width() - 1; startCol > -height(); startCol--) {
-			if (startCol >= 0) { row = 0;         col = startCol; }
-			else               { row = -startCol; col = 0;        }
-			for ( ; row < height() && col < width(); row++)
-				toporder.enqueue(node(col++, row));
-		}
-		return toporder;
 	}
 
 	// Mapping between node ID numbers and (col, row) notation. No bounds
