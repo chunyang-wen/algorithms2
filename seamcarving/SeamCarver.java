@@ -82,22 +82,21 @@ public class SeamCarver {
 		// The first two nested loops in the nesting here iterate through the
 		// cells of the matrix (the nodes of the graph) in topological order.
 		// Skip the last row because it has zero outdegree.
-		int size = width() * height();
-		int row, col;
+		int row, col, width = width(), height = height();
 		init(node(0, 0), node(width - 1, 0), 1);
-		for (int startCol = width() - 1; startCol > -height(); startCol--) {
+		for (int startCol = width - 1; startCol > -height; startCol--) {
 			if (startCol >= 0) { row = 0;         col = startCol; }
 			else               { row = -startCol; col = 0;        }
-			for ( ; row < height() - 1 && col < width(); row++) {
+			for ( ; row < height - 1 && col < width; row++) {
 				int v = node(col, row);
 				if (col > 0)
 					relax(v, node(col - 1, row + 1));
 				relax(v, node(col, row + 1));
-				if (col(from) < width - 1)
+				if (col < width - 1)
 					relax(v, node(col + 1, row + 1));
 			}
 		}
-		int endOfSeam = argmin(distTo, node(0, height() - 1), size);
+		int endOfSeam = argmin(distTo, node(0, height - 1), width * height, 1);
 		return path(endOfSeam, edgeTo);
 	}
 
