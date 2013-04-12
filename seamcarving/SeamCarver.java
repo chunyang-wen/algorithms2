@@ -77,8 +77,11 @@ public class SeamCarver {
 			else               { row = -startCol; col = 0;        }
 			for ( ; row < height() - 1 && col < width(); row++) {
 				int v = node(col, row);
-				for (int w : adj(v))
-					relax(v, w, weights, distTo, edgeTo);
+				if (col > 0)
+					relax(v, node(col - 1, row + 1));
+				relax(v, node(col, row + 1));
+				if (col(from) < width - 1)
+					relax(v, node(col + 1, row + 1));
 			}
 		}
 		int endOfSeam = argmin(distTo, node(0, height() - 1), size);
@@ -122,20 +125,6 @@ public class SeamCarver {
 	private int node(int col, int row) { return row * width() + col; }
 	private int col(int node) { return node % width(); }
 	private int row(int node) { return node / width(); }
-	// Edges point downward to the three neighboring points the row below.
-	private Iterable<Integer> adj(int from) {
-		if (from < 0 || from >= width() * height())
-			throw new IllegalArgumentException(Integer.toString(from));
-		Queue<Integer> neighbors = new Queue<Integer>();
-		if (row(from) == height() - 1)
-			return neighbors;
-		if (col(from) > 0)
-			neighbors.enqueue(node(col(from) - 1, row(from) + 1));
-		neighbors.enqueue(node(col(from), row(from) + 1));
-		if (col(from) < width() - 1)
-			neighbors.enqueue(node(col(from) + 1, row(from) + 1));
-		return neighbors;
-	}
 
 	// remove horizontal seam from picture
 	public void removeHorizontalSeam(int[] a) {
@@ -203,33 +192,6 @@ public class SeamCarver {
 		SeamCarver s = new SeamCarver(p);
 		s.printNode2Point();
 		s.printEdges();
-		s.printTopo();
-		s.printEWD();
-	}
-
-	private void printEWD() {
-		System.out.println("***** EdgeWeightedDigraph Topological Order ****");
-		EdgeWeightedDigraph g = digraph();
-		int count = 0;
-		int[][] m = new int[width()][height()];
-		for (int node : new Topological(g).order())
-			m[col(node)][row(node)] = count++;
-		for (int row = 0; row < height(); row++) {
-			for (int col = 0; col < width(); col++)
-				System.out.printf(" %3d ", m[col][row]);
-			System.out.println();
-		}
-		System.out.println();
-	}
-
-	// Construct the EdgeWeightedDigraph the instructors told us not to
-	// construct.
-	private EdgeWeightedDigraph digraph() {
-		EdgeWeightedDigraph g = new EdgeWeightedDigraph(width() * height());
-		for (int v = 0; v < width() * height(); v++)
-			for (int w : adj(v))
-				g.addEdge(new DirectedEdge(v, w, energy(col(w), row(w))));
-		return g;
 	}
 
 	private void printTopo() {
