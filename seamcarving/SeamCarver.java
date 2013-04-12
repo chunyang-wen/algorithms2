@@ -6,8 +6,17 @@
 public class SeamCarver {
 	private static final double BORDER_ENERGY = 3 * (255 * 255);
 	private Picture pic;
+	private double[] weights;
+	private double[] distTo;
+	private int[] edgeTo;
 
-	public SeamCarver(Picture picture) { this.pic = new Picture(picture); }
+	public SeamCarver(Picture picture) {
+		this.pic = new Picture(picture);
+		int size = width() * height();
+		weights = new double[size];
+		distTo = new double[size];
+		edgeTo = new int[size];
+	}
 
 	// Copy of current picture
 	public Picture picture() { return new Picture(pic); }
@@ -54,24 +63,28 @@ public class SeamCarver {
 		pic = p;
 	}
 
-	// sequence of indices for vertical seam
-	public int[] findVerticalSeam() {
-		int size = width() * height();
-		double[] weights = new double[size];
-		double[] distTo = new double[size];
-		int[] edgeTo = new int[size];
-		for (int v = node(0, 0); v < size; v++) {
-			if (row(v) == 0)
+	// Initialize the search vectors. start, stop, and skip give the range of
+	// nodes in which the search should begin (i.e., set the distance to zero).
+	private void init(int start, int stop, int skip) {
+		int width = width(), height = height();
+		for (int v = node(0, 0); v < width * height; v++) {
+			if (v >= start && v < stop && (v - start) % skip == 0)
 				distTo[v] = 0.0;
 			else
 				distTo[v] = Double.POSITIVE_INFINITY;
 			edgeTo[v] = -1;
 			weights[v] = energy(col(v), row(v));
 		}
+	}
+
+	// sequence of indices for vertical seam
+	public int[] findVerticalSeam() {
 		// The first two nested loops in the nesting here iterate through the
 		// cells of the matrix (the nodes of the graph) in topological order.
 		// Skip the last row because it has zero outdegree.
+		int size = width() * height();
 		int row, col;
+		init(node(0, 0), node(width - 1, 0), 1);
 		for (int startCol = width() - 1; startCol > -height(); startCol--) {
 			if (startCol >= 0) { row = 0;         col = startCol; }
 			else               { row = -startCol; col = 0;        }
@@ -113,7 +126,7 @@ public class SeamCarver {
 		return argmin;
 	}
 
-	private void relax(int from, int to, double[] weights, double[] distTo, int[] edgeTo) {
+	private void relax(int from, int to) {
 		if (distTo[to] > distTo[from] + weights[to]) {
 			distTo[to] = distTo[from] + weights[to];
 			edgeTo[to] = from;
