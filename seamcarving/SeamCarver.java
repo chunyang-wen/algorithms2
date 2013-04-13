@@ -208,23 +208,4 @@ public class SeamCarver {
 		}
 		pic = p;
 	}
-
-	// Make this private to avoid changing the API defined in the
-	// instructions. If you need to test the class, just change private to
-	// public.
-	private static void main(String[] args) {
-		Picture p = new Picture(args[0]);
-		System.out.printf("image is %d columns by %d rows\n", p.width(), p.height());
-		SeamCarver s = new SeamCarver(p);
-		s.printNode2Point();
-	}
-
-	private void printNode2Point() {
-		for (int node = node(0, 0); node < width() * height(); node++) {
-			System.out.printf("(%d, %d) ", col(node), row(node));
-			if (col(node) == width() - 1)
-				System.out.println();
-		}
-		System.out.println();
-	}
 }
