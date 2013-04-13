@@ -65,7 +65,7 @@ public class SeamCarver {
 			}
 		}
 		int endOfSeam = argmin(distTo, node(width - 1, 0), width * height, width);
-		return path(endOfSeam, edgeTo, true);
+		return horizontalPath(endOfSeam);
 	}
 
 	// Initialize the search vectors. start, stop, and skip give the range of
@@ -103,21 +103,22 @@ public class SeamCarver {
 			}
 		}
 		int endOfSeam = argmin(distTo, node(0, height - 1), width * height, 1);
-		return path(endOfSeam, edgeTo, false);
+		return verticalPath(endOfSeam);
 	}
 
-	private int[] path(int end, int[] edgeTo, boolean transpose) {
+	private int[] verticalPath(int end) {
 		int[] seam = new int[height()];
-		if (transpose)
-			seam[col(end)] = row(end);
-		else
-			seam[row(end)] = col(end);
-		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev]) {
-			if (transpose)
-				seam[col(prev)] = row(prev);
-			else
-				seam[row(prev)] = col(prev);
-		}
+		seam[row(end)] = col(end);
+		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
+			seam[row(prev)] = col(prev);
+		return seam;
+	}
+
+	private int[] horizontalPath(int end) {
+		int[] seam = new int[width()];
+		seam[col(end)] = row(end);
+		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
+			seam[col(prev)] = row(prev);
 		return seam;
 	}
 
