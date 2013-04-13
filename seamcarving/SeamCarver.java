@@ -31,10 +31,6 @@ public class SeamCarver {
 	 */
 	public SeamCarver(Picture picture) {
 		this.pic = new Picture(picture);
-		int size = width() * height();
-		weights = new double[size];
-		distTo = new double[size];
-		edgeTo = new int[size];
 	}
 
 	/**
@@ -148,8 +144,11 @@ public class SeamCarver {
 	// Initialize the search vectors. start, stop, and skip give the range of
 	// nodes in which the search should begin (i.e., set the distance to zero).
 	private void init(int start, int stop, int skip) {
-		int width = width(), height = height();
-		for (int v = node(0, 0); v < width * height; v++) {
+		int width = width(), height = height(), size = width * height;
+		if (weights == null || weights.length != size) weights = new double[size];
+		if (distTo == null  || distTo.length  != size) distTo  = new double[size];
+		if (edgeTo == null  || edgeTo.length  != size) edgeTo  = new int[size];
+		for (int v = node(0, 0); v < size; v++) {
 			if (v >= start && v < stop && (v - start) % skip == 0)
 				distTo[v] = 0.0;
 			else
@@ -240,6 +239,9 @@ public class SeamCarver {
 			}
 		}
 		pic = p;
+		// Free up memory that init() will need to reallocate anyway.
+		weights = distTo = null;
+		edgeTo = null;
 	}
 
 	/**
@@ -279,5 +281,8 @@ public class SeamCarver {
 			}
 		}
 		pic = p;
+		// Free up memory that init() will need to reallocate anyway.
+		weights = distTo = null;
+		edgeTo = null;
 	}
 }
