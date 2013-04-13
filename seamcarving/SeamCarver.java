@@ -1,5 +1,21 @@
 /**
- * Content-aware picture resizing.
+ * Content-aware picture resizing: iteratively remove the least noticable
+ * vertical or horizontal seam. A <em>seam</em> is a path from the top to bottom
+ * (or left to right) that moves only one pixel left or right (up or down) for
+ * each pixel it moves down (to the right).
+ * <p>
+ * The basic idea is to think of the image as an edge-weighted, directed, acyclic
+ * graph. In the vertical version, downward edges point left, striaght, and
+ * right from each non-bottom pixel. (The transpose is true in the horizontal
+ * case.) We then assign weights to each pixel (really, to each in-edge) equal
+ * to an energy function. The one defined here is a double gradient
+ * function. Finally, we find the shortest path through this graph and remove
+ * the corresponding pixels.
+ * <p>
+ * Because this is an image-manipulation class, the origin pixel is in the top
+ * left and coordinates are given in (column, row) order.
+ * <p>
+ * Dependencies: Picture.class
  *
  * @author William Schwartz
  */
@@ -10,6 +26,9 @@ public class SeamCarver {
 	private double[] distTo;
 	private int[] edgeTo;
 
+	/**
+	 * Construct a new SeamCarver from a <code>Picture</code> object.
+	 */
 	public SeamCarver(Picture picture) {
 		this.pic = new Picture(picture);
 		int size = width() * height();
@@ -18,16 +37,22 @@ public class SeamCarver {
 		edgeTo = new int[size];
 	}
 
-	// Copy of current picture
+	/**
+	 * Return a copy of the current picture.
+	 */
 	public Picture picture() { return new Picture(pic); }
 
-	// width of current picture
+	/**
+	 * Return the width of the current picture.
+	 */
 	public int width() { return pic.width(); }
 
-	// height of current picture
+	/**
+	 * Return the height of the current picture.
+	 */
 	public int height() { return pic.height(); }
 
-	// Find the square color gradient in one dimension
+	// Find the square color gradient in one dimension.
 	private int gradient(java.awt.Color a, java.awt.Color b) {
 		int red   = a.getRed()   - b.getRed();
 		int green = a.getGreen() - b.getGreen();
@@ -35,7 +60,14 @@ public class SeamCarver {
 		return red*red + green*green + blue*blue;
 	}
 
-	// energy of pixel at column x and row y
+	/**
+	 * Return the energy of pixel at column x and row y (origin in top left).
+	 * <p>
+	 * This is calculated as a double gradient for interior pixels. Thus, each
+	 * pixel's energy depends on the difference in color of all eight of its
+	 * neighbors. The energy is set to set to <code>3 * (255 * 255)</code> for
+	 * border pixels.
+	 */
 	public double energy(int x, int y) {
 		if (x < 0 || x >= width() || y < 0 || y >= height()) {
 			String msg = Integer.toString(x) + ", " + Integer.toString(y);
@@ -47,12 +79,13 @@ public class SeamCarver {
 		       + gradient(pic.get(x, y - 1), pic.get(x, y + 1));
 	}
 
-	// How the find*Seam() methods work
-	// The first two nested loops in the nesting here iterate through the
-	// cells of the matrix (the nodes of the graph) in topological order.
-	// Skip the last row because it has zero outdegree.
-	// Then iterate through up to three adjecent nodes (for vertical, down to
-	// the left, directly, and to the right), and relax those edges.
+	/* How the find*Seam() methods work
+	   The first two nested loops in the nesting here iterate through the cells
+	   of the matrix (the nodes of the graph) in topological order. Skip the
+	   last row because it has zero outdegree. Then iterate through up to three
+	   adjecent nodes (for vertical, down to the left, directly, and to the
+	   right), and relax those edges.
+	*/
 
 	// Mapping between node ID numbers and (col, row) notation. No bounds
 	// checking is performed so use with caution.
@@ -60,7 +93,12 @@ public class SeamCarver {
 	private int col(int node) { return node % width(); }
 	private int row(int node) { return node / width(); }
 
-	// sequence of indices for horizontal seam
+	/**
+	 * Return a sequence of indices of a minimum-energy horizontal seam.
+	 * <p>
+	 * If the return value is <code>a</code> then <code>a[column]</code> equals
+	 * the row number of the pixel in the seam at column number <code>column</code>.
+	 */
 	public int[] findHorizontalSeam() {
 		int row, col, width = width(), height = height();
 		init(node(0, 0), node(0, height - 1), width);
@@ -81,7 +119,12 @@ public class SeamCarver {
 		return horizontalPath(endOfSeam);
 	}
 
-	// sequence of indices for vertical seam
+	/**
+	 * Return a sequence of indices of a minimum-energy vertical seam.
+	 * <p>
+	 * If the return value is <code>a</code> then <code>a[row]</code> equals
+	 * the column number of the pixel in the seam at row number <code>row</code>.
+	 */
 	public int[] findVerticalSeam() {
 		int row, col, width = width(), height = height();
 		init(node(0, 0), node(width - 1, 0), 1);
@@ -116,6 +159,8 @@ public class SeamCarver {
 		}
 	}
 
+	// The core of the shortest-path algorithm: at each pass, distTo contains
+	// the minimum weight from the source to the indexed node found so far.
 	private void relax(int from, int to) {
 		if (distTo[to] > distTo[from] + weights[to]) {
 			distTo[to] = distTo[from] + weights[to];
@@ -140,6 +185,7 @@ public class SeamCarver {
 		return argmin;
 	}
 
+	// Translate the edgeTo array into the output format of findVerticalSeam.
 	private int[] verticalPath(int end) {
 		int[] seam = new int[height()];
 		seam[row(end)] = col(end);
@@ -148,6 +194,7 @@ public class SeamCarver {
 		return seam;
 	}
 
+	// Translate the edgeTo array into the output format of findHorizontalSeam.
 	private int[] horizontalPath(int end) {
 		int[] seam = new int[width()];
 		seam[col(end)] = row(end);
@@ -156,7 +203,18 @@ public class SeamCarver {
 		return seam;
 	}
 
-	// remove horizontal seam from picture
+	/**
+	 * Remove any horizontal seam from the current picture.
+	 * <p>
+	 * The parameter should be in <code>a[col] = row</code> notation.
+	 * <p>
+	 * Throw an <code>IllegalArgumentException</code> if the picture has no
+	 * height from which to make the picture shorter, or if the parameter is not
+	 * a seam.
+	 * <p>
+	 * Throw an <code>IndexOutofBoundsException</code> if the parameter attempts
+	 * to reference a row that does not exist.
+	 */
 	public void removeHorizontalSeam(int[] a) {
 		if (height() == 0) {
 			String msg = "Cannot remove horizontal seam from 0-height picture";
@@ -184,8 +242,18 @@ public class SeamCarver {
 		pic = p;
 	}
 
-
-	// remove vertical seam from picture
+	/**
+	 * Remove any vertical seam from the current picture.
+	 * <p>
+	 * The parameter should be in <code>a[row] = col</code> notation.
+	 * <p>
+	 * Throw an <code>IllegalArgumentException</code> if the picture has no
+	 * width from which to make the picture narrower, or if the parameter is not
+	 * a seam.
+	 * <p>
+	 * Throw an <code>IndexOutofBoundsException</code> if the parameter attempts
+	 * to reference a column that does not exist.
+	 */
 	public void removeVerticalSeam(int[] a) {
 		if (width() == 0) {
 			String msg = "Cannot remove vertical seam from zero-width picture";
