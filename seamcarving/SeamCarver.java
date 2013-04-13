@@ -47,6 +47,13 @@ public class SeamCarver {
 		       + gradient(pic.get(x, y - 1), pic.get(x, y + 1));
 	}
 
+	// How the find*Seam() methods work
+	// The first two nested loops in the nesting here iterate through the
+	// cells of the matrix (the nodes of the graph) in topological order.
+	// Skip the last row because it has zero outdegree.
+	// Then iterate through up to three adjecent nodes (for vertical, down to
+	// the left, directly, and to the right), and relax those edges.
+
 	// sequence of indices for horizontal seam
 	public int[] findHorizontalSeam() {
 		int row, col, width = width(), height = height();
@@ -84,9 +91,6 @@ public class SeamCarver {
 
 	// sequence of indices for vertical seam
 	public int[] findVerticalSeam() {
-		// The first two nested loops in the nesting here iterate through the
-		// cells of the matrix (the nodes of the graph) in topological order.
-		// Skip the last row because it has zero outdegree.
 		int row, col, width = width(), height = height();
 		init(node(0, 0), node(width - 1, 0), 1);
 		for (int startCol = width - 1; startCol > -height; startCol--) {
