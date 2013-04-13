@@ -64,8 +64,8 @@ public class SeamCarver {
 				row++;
 			}
 		}
-		int endOfSeam = argmin(distTo, node(width - 1, 0), width * height, width, true);
-		return path(endOfSeam, edgeTo);
+		int endOfSeam = argmin(distTo, node(width - 1, 0), width * height, width);
+		return path(endOfSeam, edgeTo, true);
 	}
 
 	// Initialize the search vectors. start, stop, and skip give the range of
