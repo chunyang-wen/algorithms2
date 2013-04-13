@@ -54,6 +54,12 @@ public class SeamCarver {
 	// Then iterate through up to three adjecent nodes (for vertical, down to
 	// the left, directly, and to the right), and relax those edges.
 
+	// Mapping between node ID numbers and (col, row) notation. No bounds
+	// checking is performed so use with caution.
+	private int node(int col, int row) { return row * width() + col; }
+	private int col(int node) { return node % width(); }
+	private int row(int node) { return node / width(); }
+
 	// sequence of indices for horizontal seam
 	public int[] findHorizontalSeam() {
 		int row, col, width = width(), height = height();
@@ -73,20 +79,6 @@ public class SeamCarver {
 		}
 		int endOfSeam = argmin(distTo, node(width - 1, 0), width * height, width);
 		return horizontalPath(endOfSeam);
-	}
-
-	// Initialize the search vectors. start, stop, and skip give the range of
-	// nodes in which the search should begin (i.e., set the distance to zero).
-	private void init(int start, int stop, int skip) {
-		int width = width(), height = height();
-		for (int v = node(0, 0); v < width * height; v++) {
-			if (v >= start && v < stop && (v - start) % skip == 0)
-				distTo[v] = 0.0;
-			else
-				distTo[v] = Double.POSITIVE_INFINITY;
-			edgeTo[v] = -1;
-			weights[v] = energy(col(v), row(v));
-		}
 	}
 
 	// sequence of indices for vertical seam
@@ -110,20 +102,25 @@ public class SeamCarver {
 		return verticalPath(endOfSeam);
 	}
 
-	private int[] verticalPath(int end) {
-		int[] seam = new int[height()];
-		seam[row(end)] = col(end);
-		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
-			seam[row(prev)] = col(prev);
-		return seam;
+	// Initialize the search vectors. start, stop, and skip give the range of
+	// nodes in which the search should begin (i.e., set the distance to zero).
+	private void init(int start, int stop, int skip) {
+		int width = width(), height = height();
+		for (int v = node(0, 0); v < width * height; v++) {
+			if (v >= start && v < stop && (v - start) % skip == 0)
+				distTo[v] = 0.0;
+			else
+				distTo[v] = Double.POSITIVE_INFINITY;
+			edgeTo[v] = -1;
+			weights[v] = energy(col(v), row(v));
+		}
 	}
 
-	private int[] horizontalPath(int end) {
-		int[] seam = new int[width()];
-		seam[col(end)] = row(end);
-		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
-			seam[col(prev)] = row(prev);
-		return seam;
+	private void relax(int from, int to) {
+		if (distTo[to] > distTo[from] + weights[to]) {
+			distTo[to] = distTo[from] + weights[to];
+			edgeTo[to] = from;
+		}
 	}
 
 	// Return the index of the least element of an array of doubles in a range.
@@ -143,18 +140,21 @@ public class SeamCarver {
 		return argmin;
 	}
 
-	private void relax(int from, int to) {
-		if (distTo[to] > distTo[from] + weights[to]) {
-			distTo[to] = distTo[from] + weights[to];
-			edgeTo[to] = from;
-		}
+	private int[] verticalPath(int end) {
+		int[] seam = new int[height()];
+		seam[row(end)] = col(end);
+		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
+			seam[row(prev)] = col(prev);
+		return seam;
 	}
 
-	// Mapping between node ID numbers and (col, row) notation. No bounds
-	// checking is performed so use with caution.
-	private int node(int col, int row) { return row * width() + col; }
-	private int col(int node) { return node % width(); }
-	private int row(int node) { return node / width(); }
+	private int[] horizontalPath(int end) {
+		int[] seam = new int[width()];
+		seam[col(end)] = row(end);
+		for (int prev = edgeTo[end]; prev >= 0; prev = edgeTo[prev])
+			seam[col(prev)] = row(prev);
+		return seam;
+	}
 
 	// remove horizontal seam from picture
 	public void removeHorizontalSeam(int[] a) {
